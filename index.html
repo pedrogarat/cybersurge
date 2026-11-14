@@ -70,18 +70,9 @@
       display: none;
       z-index: 2;
     }
-    /* CRT Scanline Overlay Effect (Modo 2D) */
+    /* CRT Scanline Overlay Effect desactivado para máxima claridad */
     .scanlines {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(rgba(18, 16, 38, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
-      background-size: 100% 4px;
-      pointer-events: none;
-      z-index: 10;
-      opacity: 0.65;
+      display: none !important;
     }
     .vignette {
       position: absolute;
@@ -89,7 +80,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      box-shadow: inset 0 0 80px rgba(0,0,0,0.85);
+      box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.25);
       pointer-events: none;
       z-index: 11;
     }
@@ -916,38 +907,60 @@ class Player {
       ctx.translate(px, py);
     }
 
+    // Resplandor cian para destacar al jugador sobre cualquier fondo
     ctx.shadowColor = '#00f0ff';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 14;
 
-    ctx.fillStyle = '#1a1f38';
+    // Contorno exterior blanco de alto contraste
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(1, 10, 24, 22);
+
+    // Piernas visibles en azul eléctrico con zapatillas blancas
     const legOffset = Math.sin(this.runAnimTimer) * 6;
+    ctx.fillStyle = '#2563eb';
     if (!this.grounded) {
       ctx.fillRect(4, 28, 7, 10);
       ctx.fillRect(15, 26, 7, 8);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(4, 35, 8, 4);
+      ctx.fillRect(15, 31, 8, 4);
     } else {
       ctx.fillRect(4 + legOffset, 28, 7, 14);
       ctx.fillRect(15 - legOffset, 28, 7, 14);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(4 + legOffset, 39, 8, 4);
+      ctx.fillRect(15 - legOffset, 39, 8, 4);
     }
 
-    ctx.fillStyle = '#10172a';
+    // Torso con armadura blanca y placa de energía cian
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(2, 12, 22, 18);
     ctx.fillStyle = '#00f0ff';
-    ctx.fillRect(6, 15, 4, 12);
-    ctx.fillRect(14, 15, 6, 4);
+    ctx.fillRect(6, 15, 6, 12);
+    ctx.fillRect(14, 15, 6, 6);
 
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(4, 2, 18, 12);
+    // Casco blanco nítido
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(3, 1, 20, 13);
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(3, 1, 20, 13);
 
-    ctx.fillStyle = '#00f0ff';
-    ctx.shadowColor = '#00f0ff';
-    ctx.shadowBlur = 12;
-    ctx.fillRect(12, 5, 11, 4);
+    // Visor dorado ultra reflectante
+    ctx.fillStyle = '#ffe600';
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 10;
+    ctx.fillRect(11, 4, 13, 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(13, 5, 8, 2);
 
+    // Bufanda de energía magenta brillante
     ctx.fillStyle = '#ff0055';
     ctx.shadowColor = '#ff0055';
+    ctx.shadowBlur = 12;
     const scarfWave = Math.sin(Date.now() * 0.01) * 3;
-    ctx.fillRect(-6, 12 + scarfWave, 8, 3);
-    ctx.fillRect(-10, 14 + scarfWave, 6, 2);
+    ctx.fillRect(-6, 12 + scarfWave, 9, 4);
+    ctx.fillRect(-11, 14 + scarfWave, 7, 3);
 
     ctx.restore();
   }
@@ -984,16 +997,28 @@ class GlitchDrone {
     const hover = Math.sin(this.animTimer) * 2;
 
     ctx.save();
+    // Brillo y contorno de alta advertencia en rojo neón
     ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = '#2b091f';
-    ctx.fillRect(px, py + hover, this.w, this.h);
+    ctx.shadowBlur = 12;
     ctx.fillStyle = '#ff0055';
-    const eyeX = this.vx > 0 ? px + 16 : px + 4;
-    ctx.fillRect(eyeX, py + hover + 6, 8, 5);
+    ctx.fillRect(px, py + hover, this.w, this.h);
+
+    // Borde blanco de alto contraste
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(px, py + hover, this.w, this.h);
+    
+    // Ojo escáner central amarillo brillante
+    ctx.fillStyle = '#ffe600';
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 8;
+    const eyeX = this.vx > 0 ? px + 15 : px + 5;
+    ctx.fillRect(eyeX, py + hover + 5, 8, 6);
+
+    // Propulsores inferiores cian
     ctx.fillStyle = '#00f0ff';
-    ctx.fillRect(px + 4, py + hover + this.h, 6, 3);
-    ctx.fillRect(px + 18, py + hover + this.h, 6, 3);
+    ctx.fillRect(px + 3, py + hover + this.h, 7, 4);
+    ctx.fillRect(px + 18, py + hover + this.h, 7, 4);
     ctx.restore();
   }
 }
@@ -1061,16 +1086,27 @@ class HopperBot {
     const px = this.x - camX;
     const py = this.y - camY;
     ctx.save();
+    // Brillo dorado eléctrico ultra visible
     ctx.shadowColor = '#ffe600';
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = '#423c08';
+    ctx.shadowBlur = 12;
+
+    // Resorte / Patas metálicas claras
+    ctx.fillStyle = '#94a3b8';
     ctx.fillRect(px + 7, py + 18, 12, 12);
+    ctx.strokeStyle = '#ffffff';
+    ctx.strokeRect(px + 7, py + 18, 12, 12);
+
+    // Chasis amarillo neón intenso
     ctx.fillStyle = '#ffe600';
     ctx.fillRect(px + 2, py + 2, 22, 18);
-    ctx.fillStyle = '#090814';
-    ctx.fillRect(px + 6, py + 6, 14, 10);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(px + 2, py + 2, 22, 18);
+
+    // Núcleo central rojo brillante
     ctx.fillStyle = '#ff0055';
-    ctx.fillRect(px + 9, py + 9, 8, 4);
+    ctx.shadowColor = '#ff0055';
+    ctx.fillRect(px + 7, py + 7, 12, 8);
     ctx.restore();
   }
 }
@@ -1108,14 +1144,28 @@ class TurretSentry {
     const py = this.y - camY;
     ctx.save();
     ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = '#1c1829';
+    ctx.shadowBlur = 14;
+
+    // Base de torreta en acero visible
+    ctx.fillStyle = '#334155';
     ctx.fillRect(px, py + 14, this.w, 18);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px, py + 14, this.w, 18);
+
+    // Cañón rojo brillante
     ctx.fillStyle = '#ff0055';
-    if (this.dir < 0) ctx.fillRect(px - 6, py + 8, 18, 8);
-    else ctx.fillRect(px + 20, py + 8, 18, 8);
+    if (this.dir < 0) {
+      ctx.fillRect(px - 8, py + 6, 20, 10);
+    } else {
+      ctx.fillRect(px + 20, py + 6, 20, 10);
+    }
+
+    // Cabina giratoria cian luminoso
     ctx.fillStyle = '#00f0ff';
     ctx.fillRect(px + 8, py + 2, 16, 14);
+    ctx.strokeStyle = '#ffffff';
+    ctx.strokeRect(px + 8, py + 2, 16, 14);
     ctx.restore();
   }
 }
@@ -1144,8 +1194,11 @@ class HunterDrone {
     const px = this.x - camX;
     const py = this.y - camY;
     ctx.save();
+    // Brillo verde lima radioactivo ultra visible
     ctx.shadowColor = '#00ff66';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 14;
+
+    // Alas afiladas fluorescentes
     ctx.fillStyle = '#00ff66';
     ctx.beginPath();
     ctx.moveTo(px + 15, py);
@@ -1154,10 +1207,15 @@ class HunterDrone {
     ctx.lineTo(px + 34, py + 12);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#150d2a';
-    ctx.fillRect(px + 9, py + 7, 12, 10);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Ojo cazador amarillo dorado
+    ctx.fillStyle = '#1e1b4b';
+    ctx.fillRect(px + 8, py + 7, 14, 10);
     ctx.fillStyle = '#ffe600';
-    ctx.fillRect(px + 12, py + 9, 6, 6);
+    ctx.fillRect(px + 11, py + 9, 8, 6);
     ctx.restore();
   }
 }
@@ -1233,18 +1291,29 @@ class ApexSentinel {
     const py = this.y - camY;
     ctx.save();
     ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = '#1c071d';
+    ctx.shadowBlur = 16;
+
+    // Chasis blindado rojo carmesí de alto contraste
+    ctx.fillStyle = '#e11d48';
     ctx.fillRect(px, py + 8, this.w, 36);
-    ctx.fillStyle = '#ff0055';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px, py + 8, this.w, 36);
+
+    // Placas de armadura dorada
+    ctx.fillStyle = '#ffe600';
     ctx.fillRect(px + 4, py + 12, this.w - 8, 10);
     ctx.fillRect(px + 6, py + 26, this.w - 12, 12);
-    ctx.fillStyle = '#ffe600';
-    ctx.fillRect(px + 2, py, 6, 8);
-    ctx.fillRect(px + this.w - 8, py, 6, 8);
+
+    // Corona cibernética
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(px + 2, py, 7, 8);
+    ctx.fillRect(px + this.w - 9, py, 7, 8);
+
+    // Visor central cian intenso
     ctx.fillStyle = '#00f0ff';
     const eyeOffset = this.facing > 0 ? 16 : 4;
-    ctx.fillRect(px + eyeOffset, py + 14, 12, 6);
+    ctx.fillRect(px + eyeOffset, py + 14, 13, 7);
     ctx.restore();
   }
 }
@@ -1540,10 +1609,11 @@ class ThreeRenderer {
 
   initScene() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x060511);
-    this.scene.fog = new THREE.FogExp2(0x060511, 0.00085);
+    // Cielo azul medianoche luminoso y limpio
+    this.scene.background = new THREE.Color(0x151c38);
+    this.scene.fog = new THREE.FogExp2(0x151c38, 0.00032);
 
-    this.camera = new THREE.PerspectiveCamera(48, this.width / this.height, 1, 3000);
+    this.camera = new THREE.PerspectiveCamera(48, this.width / this.height, 1, 3500);
     this.camera.position.set(200, 350, 520);
 
     this.renderer = new THREE.WebGLRenderer({
@@ -1556,18 +1626,22 @@ class ThreeRenderer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    const ambient = new THREE.AmbientLight(0x1a153a, 1.2);
+    // Iluminación mejorada de alta visibilidad (Cero oscuridad)
+    const ambient = new THREE.AmbientLight(0x94a3b8, 2.4);
     this.scene.add(ambient);
 
-    this.dirLight = new THREE.DirectionalLight(0x00f0ff, 1.4);
-    this.dirLight.position.set(300, 700, 400);
+    const hemiLight = new THREE.HemisphereLight(0xa5c4ff, 0x1e2742, 2.0);
+    this.scene.add(hemiLight);
+
+    this.dirLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    this.dirLight.position.set(350, 750, 450);
     this.dirLight.castShadow = true;
     this.dirLight.shadow.mapSize.width = 1024;
     this.dirLight.shadow.mapSize.height = 1024;
     this.scene.add(this.dirLight);
 
-    const pinkLight = new THREE.PointLight(0xff0055, 2.5, 900);
-    pinkLight.position.set(0, 300, 150);
+    const pinkLight = new THREE.PointLight(0xff0055, 2.8, 1000);
+    pinkLight.position.set(0, 320, 160);
     this.scene.add(pinkLight);
     this.pinkLight = pinkLight;
 
@@ -1577,33 +1651,26 @@ class ThreeRenderer {
 
   createBackgroundCity() {
     const cityGroup = new THREE.Group();
+    // Siluetas lejanas limpias, sin franjas horizontales que se confundan con plataformas
     const matBuilding = new THREE.MeshStandardMaterial({
-      color: 0x09071c,
-      roughness: 0.6,
-      metalness: 0.8
+      color: 0x0f152d,
+      roughness: 0.8,
+      metalness: 0.3
     });
-    const matWindow = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
 
-    for (let i = 0; i < 45; i++) {
-      const bw = 50 + Math.random() * 80;
-      const bh = 220 + Math.random() * 420;
-      const bd = 50 + Math.random() * 80;
+    for (let i = 0; i < 40; i++) {
+      const bw = 60 + Math.random() * 90;
+      const bh = 260 + Math.random() * 450;
+      const bd = 60 + Math.random() * 90;
       const geom = new THREE.BoxGeometry(bw, bh, bd);
       const building = new THREE.Mesh(geom, matBuilding);
+      // Colocados bien atrás en Z para separar la profundidad
       building.position.set(
-        (i - 5) * 95 + (Math.random() * 30),
-        bh / 2 - 120,
-        -180 - Math.random() * 350
+        (i - 4) * 110 + (Math.random() * 25),
+        bh / 2 - 130,
+        -420 - Math.random() * 400
       );
       cityGroup.add(building);
-
-      if (Math.random() < 0.65) {
-        const winGeom = new THREE.BoxGeometry(bw * 0.8, 12, bd * 1.02);
-        const win = new THREE.Mesh(winGeom, matWindow);
-        win.position.copy(building.position);
-        win.position.y += (Math.random() * (bh * 0.6) - bh * 0.3);
-        cityGroup.add(win);
-      }
     }
     this.scene.add(cityGroup);
   }
@@ -1611,31 +1678,37 @@ class ThreeRenderer {
   createPlayerMesh() {
     this.playerGroup = new THREE.Group();
 
-    const matBody = new THREE.MeshStandardMaterial({ color: 0x10172a, roughness: 0.3, metalness: 0.85 });
-    const matVisor = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    const matScarf = new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0xff0055, emissiveIntensity: 0.8 });
-    const matLimb = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.7 });
+    // Materiales del héroe con alto brillo y contraste
+    const matArmor = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00f0ff, emissiveIntensity: 0.35, roughness: 0.2 });
+    const matVisor = new THREE.MeshStandardMaterial({ color: 0xffe600, emissive: 0xffe600, emissiveIntensity: 1.5 });
+    const matScarf = new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0xff0055, emissiveIntensity: 1.4 });
+    const matLimb = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3 });
 
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(22, 18, 16), matBody);
+    // Torso blanco reflectante
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(22, 18, 16), matArmor);
     torso.position.y = 20;
     torso.castShadow = true;
     this.playerGroup.add(torso);
 
-    const head = new THREE.Mesh(new THREE.BoxGeometry(16, 12, 14), matBody);
+    // Cabeza
+    const head = new THREE.Mesh(new THREE.BoxGeometry(16, 12, 14), matArmor);
     head.position.y = 34;
     head.castShadow = true;
     this.playerGroup.add(head);
 
-    const visor = new THREE.Mesh(new THREE.BoxGeometry(12, 4, 3), matVisor);
-    visor.position.set(0, 34, 7.5);
+    // Visor dorado ultra brillante
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(13, 5, 4), matVisor);
+    visor.position.set(0, 34, 7.8);
     this.playerGroup.add(visor);
     this.playerVisor = visor;
 
-    const scarf = new THREE.Mesh(new THREE.BoxGeometry(14, 4, 18), matScarf);
-    scarf.position.set(0, 26, -9);
+    // Bufanda de plasma neón
+    const scarf = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 20), matScarf);
+    scarf.position.set(0, 26, -10);
     this.playerGroup.add(scarf);
     this.playerScarf = scarf;
 
+    // Piernas celestes visibles
     this.leftLeg = new THREE.Mesh(new THREE.BoxGeometry(7, 14, 7), matLimb);
     this.leftLeg.position.set(-5, 7, 0);
     this.leftLeg.castShadow = true;
@@ -1667,9 +1740,20 @@ class ThreeRenderer {
     this.meshes.hazards = [];
     this.meshes.jumpPads = [];
 
-    const matPlat = new THREE.MeshStandardMaterial({ color: 0x111322, roughness: 0.35, metalness: 0.8 });
-    const matTopNeon = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    const matMovingNeon = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+    // Plataformas sólidas de alta visibilidad
+    const matPlat = new THREE.MeshStandardMaterial({ color: 0x243258, roughness: 0.3, metalness: 0.4 });
+    const matTopNeon = new THREE.MeshStandardMaterial({
+      color: 0x00f0ff,
+      emissive: 0x00f0ff,
+      emissiveIntensity: 1.5,
+      roughness: 0.1
+    });
+    const matMovingNeon = new THREE.MeshStandardMaterial({
+      color: 0xffe600,
+      emissive: 0xffe600,
+      emissiveIntensity: 1.5,
+      roughness: 0.1
+    });
 
     const allPlats = [...level.platforms, ...level.movingPlatforms];
     for (const p of allPlats) {
@@ -1680,7 +1764,8 @@ class ThreeRenderer {
       mesh.receiveShadow = true;
       platGroup.add(mesh);
 
-      const topGeom = new THREE.BoxGeometry(p.w, 4, 62);
+      // Superficie superior gruesa e inconfundible con luz propia
+      const topGeom = new THREE.BoxGeometry(p.w, 7, 64);
       const topMesh = new THREE.Mesh(topGeom, p.isMoving ? matMovingNeon : matTopNeon);
       topMesh.position.y = p.h / 2;
       platGroup.add(topMesh);
@@ -1768,26 +1853,59 @@ class ThreeRenderer {
     for (const enemy of level.enemies) {
       const eGroup = new THREE.Group();
       if (enemy.type === 'drone') {
-        const droneBody = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff0055, roughness: 0.3 }));
+        const droneBody = new THREE.Mesh(new THREE.SphereGeometry(15, 16, 16), new THREE.MeshStandardMaterial({
+          color: 0xff0055,
+          emissive: 0xff0055,
+          emissiveIntensity: 0.85,
+          roughness: 0.2
+        }));
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(6, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffe600 }));
+        eye.position.set(10, 0, 0);
+        droneBody.add(eye);
         droneBody.castShadow = true;
         eGroup.add(droneBody);
       } else if (enemy.type === 'hopper') {
-        const hopperBody = new THREE.Mesh(new THREE.BoxGeometry(22, 22, 22), new THREE.MeshStandardMaterial({ color: 0xffe600, roughness: 0.3 }));
+        const hopperBody = new THREE.Mesh(new THREE.BoxGeometry(24, 24, 24), new THREE.MeshStandardMaterial({
+          color: 0xffe600,
+          emissive: 0xffe600,
+          emissiveIntensity: 0.9,
+          roughness: 0.2
+        }));
         hopperBody.castShadow = true;
         eGroup.add(hopperBody);
       } else if (enemy.type === 'turret') {
-        const turretBase = new THREE.Mesh(new THREE.CylinderGeometry(14, 18, 24, 12), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-        const cannon = new THREE.Mesh(new THREE.BoxGeometry(20, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff0055 }));
-        cannon.position.set(-6, 4, 0);
+        const turretBase = new THREE.Mesh(new THREE.CylinderGeometry(15, 20, 26, 12), new THREE.MeshStandardMaterial({
+          color: 0x475569,
+          roughness: 0.3
+        }));
+        const cannon = new THREE.Mesh(new THREE.BoxGeometry(22, 10, 10), new THREE.MeshStandardMaterial({
+          color: 0xff0055,
+          emissive: 0xff0055,
+          emissiveIntensity: 1.2
+        }));
+        cannon.position.set(-8, 5, 0);
         turretBase.add(cannon);
         turretBase.castShadow = true;
         eGroup.add(turretBase);
       } else if (enemy.type === 'hunter') {
-        const hunterBody = new THREE.Mesh(new THREE.ConeGeometry(15, 28, 4), new THREE.MeshStandardMaterial({ color: 0x00ff66, emissive: 0x00ff66, emissiveIntensity: 0.5 }));
+        const hunterBody = new THREE.Mesh(new THREE.ConeGeometry(16, 32, 4), new THREE.MeshStandardMaterial({
+          color: 0x00ff66,
+          emissive: 0x00ff66,
+          emissiveIntensity: 1.2
+        }));
         hunterBody.rotation.z = Math.PI / 2;
         eGroup.add(hunterBody);
       } else if (enemy.type === 'apex') {
-        const apexBody = new THREE.Mesh(new THREE.BoxGeometry(28, 38, 26), new THREE.MeshStandardMaterial({ color: 0xff0055, roughness: 0.2, metalness: 0.9 }));
+        const apexBody = new THREE.Mesh(new THREE.BoxGeometry(30, 42, 28), new THREE.MeshStandardMaterial({
+          color: 0xff0055,
+          emissive: 0xff0055,
+          emissiveIntensity: 0.9,
+          roughness: 0.2,
+          metalness: 0.8
+        }));
+        const visor = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 4), new THREE.MeshBasicMaterial({ color: 0xffe600 }));
+        visor.position.set(0, 10, 14.5);
+        apexBody.add(visor);
         apexBody.castShadow = true;
         eGroup.add(apexBody);
       }
@@ -2343,27 +2461,36 @@ class Game {
 
       this.ctx.save();
       if (plat.isMoving) {
-        this.ctx.fillStyle = '#0f172a';
+        // Plataforma móvil: cuerpo azul pizarra con borde superior amarillo oro brillante e inconfundible
+        this.ctx.fillStyle = '#1e294b';
         this.ctx.fillRect(px, py, plat.w, plat.h);
-        this.ctx.strokeStyle = '#00f0ff';
+        this.ctx.strokeStyle = '#ffe600';
         this.ctx.lineWidth = 2;
-        this.ctx.shadowColor = '#00f0ff';
-        this.ctx.shadowBlur = 8;
         this.ctx.strokeRect(px, py, plat.w, plat.h);
-        this.ctx.fillStyle = '#00f0ff';
-        this.ctx.fillRect(px + plat.w / 2 - 8, py + 8, 16, 4);
-      } else if (plat.type === 'ground') {
-        this.ctx.fillStyle = '#0d0c1d';
-        this.ctx.fillRect(px, py, plat.w, plat.h);
-        this.ctx.fillStyle = '#ff0055';
-        this.ctx.shadowColor = '#ff0055';
-        this.ctx.shadowBlur = 6;
-        this.ctx.fillRect(px, py, plat.w, 4);
+
+        this.ctx.fillStyle = '#ffe600';
+        this.ctx.shadowColor = '#ffe600';
+        this.ctx.shadowBlur = 10;
+        this.ctx.fillRect(px, py, plat.w, 7);
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(px, py, plat.w, 2);
+
+        this.ctx.fillStyle = '#05050d';
+        this.ctx.fillRect(px + plat.w / 2 - 10, py + 10, 20, 5);
       } else {
-        this.ctx.fillStyle = '#181b30';
+        // Plataforma estática: cuerpo metálico visible con borde superior cian ultra nítido
+        this.ctx.fillStyle = '#1e294b';
         this.ctx.fillRect(px, py, plat.w, plat.h);
+        this.ctx.strokeStyle = '#38bdf8';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(px, py, plat.w, plat.h);
+
         this.ctx.fillStyle = '#00f0ff';
-        this.ctx.fillRect(px, py, plat.w, 3);
+        this.ctx.shadowColor = '#00f0ff';
+        this.ctx.shadowBlur = 12;
+        this.ctx.fillRect(px, py, plat.w, 8);
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(px, py, plat.w, 2);
       }
       this.ctx.restore();
     }
@@ -2476,32 +2603,28 @@ class Game {
   }
 
   drawParallaxBackground() {
+    // Cielo azul medianoche limpio y luminoso (Cero oscuridad deprimente)
     const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
-    grad.addColorStop(0, '#060511');
-    grad.addColorStop(1, '#180c29');
+    grad.addColorStop(0, '#151d3b');
+    grad.addColorStop(1, '#241a4a');
     this.ctx.fillStyle = grad;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
+    // Siluetas lejanas limpias, SIN franjas horizontales que confundan
     this.ctx.save();
-    this.ctx.fillStyle = '#0b0a1f';
-    const bOffset = (this.camX * 0.15) % 220;
-    for (let x = -bOffset - 50; x < this.width + 100; x += 110) {
-      const h = 180 + ((Math.sin(x) * 1000) % 90);
-      this.ctx.fillRect(x, this.height - h, 90, h);
-      this.ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
-      for (let wy = this.height - h + 20; wy < this.height - 20; wy += 25) {
-        this.ctx.fillRect(x + 15, wy, 8, 12);
-        this.ctx.fillRect(x + 40, wy, 8, 12);
-        this.ctx.fillRect(x + 65, wy, 8, 12);
-      }
-      this.ctx.fillStyle = '#0b0a1f';
+    this.ctx.fillStyle = '#11172e';
+    const bOffset = (this.camX * 0.12) % 240;
+    for (let x = -bOffset - 60; x < this.width + 120; x += 120) {
+      const h = 200 + ((Math.sin(x * 0.05) * 1000) % 110);
+      this.ctx.fillRect(x, this.height - h, 100, h);
     }
 
-    this.ctx.fillStyle = '#120f2b';
-    const mOffset = (this.camX * 0.35) % 300;
-    for (let x = -mOffset - 60; x < this.width + 100; x += 150) {
-      const h = 100 + ((Math.cos(x) * 1000) % 60);
-      this.ctx.fillRect(x, this.height - h, 120, h);
+    // Siluetas intermedias
+    this.ctx.fillStyle = '#192242';
+    const mOffset = (this.camX * 0.25) % 320;
+    for (let x = -mOffset - 70; x < this.width + 120; x += 160) {
+      const h = 120 + ((Math.cos(x * 0.04) * 1000) % 70);
+      this.ctx.fillRect(x, this.height - h, 130, h);
     }
     this.ctx.restore();
   }
