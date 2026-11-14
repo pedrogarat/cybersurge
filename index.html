@@ -55,11 +55,13 @@
         display: none !important;
       }
     }
-    canvas {
-      display: block;
+    #gameCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      image-rendering: pixelated;
+      z-index: 5;
     }
     #threeCanvas {
       position: absolute;
@@ -822,7 +824,8 @@ class Player {
   }
 
   resolveCollisionsX(level) {
-    for (const plat of level.platforms) {
+    const allPlats = [...level.platforms, ...level.movingPlatforms];
+    for (const plat of allPlats) {
       if (this.intersects(plat)) {
         if (this.vx > 0) {
           this.x = plat.x - this.w;
@@ -836,7 +839,8 @@ class Player {
   }
 
   resolveCollisionsY(level, particles) {
-    for (const plat of level.platforms) {
+    const allPlats = [...level.platforms, ...level.movingPlatforms];
+    for (const plat of allPlats) {
       if (this.intersects(plat)) {
         if (this.vy > 0) {
           this.y = plat.y - this.h;
@@ -1984,6 +1988,13 @@ class ThreeRenderer {
 
     this.renderer.render(this.scene, this.camera);
   }
+
+  snapCamera(player) {
+    const targetCamX = player.x + 120;
+    const targetCamY = 600 - player.y + 50;
+    this.camera.position.set(targetCamX, targetCamY, 460);
+    this.camera.lookAt(targetCamX, targetCamY - 40, 0);
+  }
 }
 
 // ==========================================
@@ -2017,6 +2028,7 @@ class Game {
 
     this.state = 'START';
     this.transitionTimer = 0;
+    this.deathTimer = 0;
 
     this.camX = 0;
     this.camY = 0;
@@ -2143,6 +2155,12 @@ class Game {
 
     this.canvas2D.addEventListener('pointerdown', triggerScreenTap);
     this.canvas3D.addEventListener('pointerdown', triggerScreenTap);
+    window.addEventListener('pointerdown', (e) => {
+      // Si estamos en GAME_OVER o VICTORY, cualquier toque o clic en cualquier parte de la pantalla reinicia el juego
+      if (this.state === 'GAME_OVER' || this.state === 'VICTORY') {
+        triggerScreenTap();
+      }
+    });
 
     this.setupTouchControls();
   }
@@ -2244,8 +2262,11 @@ class Game {
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
         audio.init();
-        if (this.state === 'GAME_OVER' || this.state === 'VICTORY') this.restartGame();
-        else if (this.state === 'PLAYING') this.player.die();
+        if (this.state === 'GAME_OVER' || this.state === 'VICTORY') {
+          this.restartGame();
+        } else if (this.state === 'PLAYING') {
+          if (this.deathTimer === 0 && !this.player.isDead) this.player.die();
+        }
       };
       btnRestart.addEventListener('touchstart', triggerRestart, { passive: false });
       btnRestart.addEventListener('click', triggerRestart);
@@ -2284,15 +2305,20 @@ class Game {
     this.level = this.levels[idx];
     this.player = new Player(this.level.playerStart.x, this.level.playerStart.y);
     this.projectiles = [];
+    this.deathTimer = 0;
     audio.setLevel(idx + 1);
 
     this.renderer3D.buildLevel3D(this.level);
+    this.renderer3D.snapCamera(this.player);
+    this.camX = Math.max(0, Math.min(this.level.width - this.width, this.player.x - this.width * 0.38));
+    this.camY = Math.max(0, Math.min(this.level.height - this.height, this.player.y - this.height * 0.55));
   }
 
   restartGame() {
     this.levels = buildLevels();
     this.score = 0;
     this.lives = 3;
+    this.deathTimer = 0;
     this.state = 'PLAYING';
     this.loadLevel(0);
   }
@@ -2316,97 +2342,109 @@ class Game {
         }
       }
 
-      this.player.update(this.input, this.level, this.particles);
-
-      if (this.player.isDead) {
-        this.particles.emit(this.player.x + this.player.w / 2, this.player.y + this.player.h / 2, '#ff0055', 24, 4, 3.5, 45);
-        this.lives--;
-        if (this.lives <= 0) {
-          this.state = 'GAME_OVER';
-          audio.playGameOver();
-        } else {
-          this.player.reset();
-          this.player.invincibleTimer = 80;
-        }
-      }
-
-      for (const enemy of this.level.enemies) {
-        if (enemy.isDead) continue;
-        if (enemy.type === 'turret') enemy.update(this.level, this.projectiles);
-        else if (enemy.type === 'apex') enemy.update(this.level, this.player, this.projectiles);
-        else enemy.update(this.level);
-
-        if (this.player.intersects(enemy)) {
-          if (this.player.vy > 0 && (this.player.y + this.player.h - this.player.vy) <= enemy.y + 14) {
-            enemy.isDead = true;
-            this.player.bounceOnEnemy();
-            this.score += 200;
-            this.particles.emit(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#ffe600', 16, 3.5, 3, 30);
+      if (this.deathTimer > 0) {
+        this.deathTimer--;
+        if (this.deathTimer === 0) {
+          this.lives--;
+          if (this.lives <= 0) {
+            this.state = 'GAME_OVER';
+            audio.playGameOver();
           } else {
-            if (this.player.hitHazard()) break;
+            this.player.reset();
+            this.player.invincibleTimer = 90;
+            this.renderer3D.snapCamera(this.player);
+            this.camX = Math.max(0, Math.min(this.level.width - this.width, this.player.x - this.width * 0.38));
+            this.camY = Math.max(0, Math.min(this.level.height - this.height, this.player.y - this.height * 0.55));
+          }
+        }
+      } else {
+        this.player.update(this.input, this.level, this.particles);
+
+        if (this.player.isDead) {
+          this.particles.emit(this.player.x + this.player.w / 2, this.player.y + this.player.h / 2, '#ff0055', 28, 4.5, 3.5, 50);
+          this.deathTimer = 45; // ~0.75s de pausa para mostrar muerte limpia
+        }
+
+        for (const enemy of this.level.enemies) {
+          if (enemy.isDead) continue;
+          if (enemy.type === 'turret') enemy.update(this.level, this.projectiles);
+          else if (enemy.type === 'apex') enemy.update(this.level, this.player, this.projectiles);
+          else enemy.update(this.level);
+
+          if (this.player.intersects(enemy)) {
+            if (this.player.vy > 0 && (this.player.y + this.player.h - this.player.vy) <= enemy.y + 14) {
+              enemy.isDead = true;
+              this.player.bounceOnEnemy();
+              this.score += 200;
+              this.particles.emit(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#ffe600', 16, 3.5, 3, 30);
+            } else {
+              if (this.player.hitHazard()) break;
+            }
+          }
+        }
+
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+          const p = this.projectiles[i];
+          p.x += p.vx;
+          if (this.player.intersects(p)) {
+            this.player.hitHazard();
+            this.projectiles.splice(i, 1);
+            continue;
+          }
+          if (p.x < this.camX - 200 || p.x > this.camX + this.width + 200) {
+            this.projectiles.splice(i, 1);
+          }
+        }
+
+        for (const pad of this.level.jumpPads) {
+          if (this.player.intersects(pad)) {
+            this.player.vy = pad.force;
+            this.player.grounded = false;
+            audio.playSpring();
+            this.particles.emit(pad.x + pad.w / 2, pad.y, '#00ff66', 14, 4, 3, 25);
+          }
+        }
+
+        for (const haz of this.level.hazards) {
+          if (haz.type === 'laser' && !haz.active) continue;
+          if (this.player.intersects(haz)) {
+            this.player.hitHazard();
+            break;
+          }
+        }
+
+        for (const core of this.level.cores) {
+          if (!core.collected) {
+            const coreRect = { x: core.x - 12, y: core.y - 12, w: 24, h: 24 };
+            if (this.player.intersects(coreRect)) {
+              core.collected = true;
+              this.score += 100;
+              audio.playCoin();
+              this.particles.emit(core.x, core.y, '#00f0ff', 12, 3, 2.5, 25);
+            }
+          }
+        }
+
+        if (this.player.intersects(this.level.portal)) {
+          audio.playLevelWin();
+          if (this.currentLevelIdx < this.levels.length - 1) {
+            this.state = 'LEVEL_WIN';
+            this.transitionTimer = 110;
+          } else {
+            this.state = 'VICTORY';
           }
         }
       }
 
-      for (let i = this.projectiles.length - 1; i >= 0; i--) {
-        const p = this.projectiles[i];
-        p.x += p.vx;
-        if (this.player.intersects(p)) {
-          this.player.hitHazard();
-          this.projectiles.splice(i, 1);
-          continue;
-        }
-        if (p.x < this.camX - 200 || p.x > this.camX + this.width + 200) {
-          this.projectiles.splice(i, 1);
-        }
+      if (this.deathTimer === 0) {
+        const targetCamX = this.player.x - this.width * 0.38;
+        this.camX += (targetCamX - this.camX) * 0.09;
+        this.camX = Math.max(0, Math.min(this.level.width - this.width, this.camX));
+
+        const targetCamY = this.player.y - this.height * 0.55;
+        this.camY += (targetCamY - this.camY) * 0.08;
+        this.camY = Math.max(0, Math.min(this.level.height - this.height, this.camY));
       }
-
-      for (const pad of this.level.jumpPads) {
-        if (this.player.intersects(pad)) {
-          this.player.vy = pad.force;
-          this.player.grounded = false;
-          audio.playSpring();
-          this.particles.emit(pad.x + pad.w / 2, pad.y, '#00ff66', 14, 4, 3, 25);
-        }
-      }
-
-      for (const haz of this.level.hazards) {
-        if (haz.type === 'laser' && !haz.active) continue;
-        if (this.player.intersects(haz)) {
-          this.player.hitHazard();
-          break;
-        }
-      }
-
-      for (const core of this.level.cores) {
-        if (!core.collected) {
-          const coreRect = { x: core.x - 12, y: core.y - 12, w: 24, h: 24 };
-          if (this.player.intersects(coreRect)) {
-            core.collected = true;
-            this.score += 100;
-            audio.playCoin();
-            this.particles.emit(core.x, core.y, '#00f0ff', 12, 3, 2.5, 25);
-          }
-        }
-      }
-
-      if (this.player.intersects(this.level.portal)) {
-        audio.playLevelWin();
-        if (this.currentLevelIdx < this.levels.length - 1) {
-          this.state = 'LEVEL_WIN';
-          this.transitionTimer = 110;
-        } else {
-          this.state = 'VICTORY';
-        }
-      }
-
-      const targetCamX = this.player.x - this.width * 0.38;
-      this.camX += (targetCamX - this.camX) * 0.09;
-      this.camX = Math.max(0, Math.min(this.level.width - this.width, this.camX));
-
-      const targetCamY = this.player.y - this.height * 0.55;
-      this.camY += (targetCamY - this.camY) * 0.08;
-      this.camY = Math.max(0, Math.min(this.level.height - this.height, this.camY));
     }
 
     if (this.state === 'LEVEL_WIN') {
