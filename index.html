@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>CYBER SURGE: PROTOCOL ZERO - 2D & 2.5D Platformer</title>
-  <!-- Three.js para el motor 3D / 2.5D -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <title>CYBER SURGE: PROTOCOL ZERO - Retro 2D Platformer</title>
   <style>
     * {
       box-sizing: border-box;
@@ -63,19 +61,6 @@
       height: 100%;
       z-index: 5;
     }
-    #threeCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: none;
-      z-index: 2;
-    }
-    /* CRT Scanline Overlay Effect desactivado para máxima claridad */
-    .scanlines {
-      display: none !important;
-    }
     .vignette {
       position: absolute;
       top: 0;
@@ -98,126 +83,6 @@
     #instructions-bar span {
       color: #00f0ff;
       font-weight: bold;
-    }
-
-    /* =========================================
-       MODAL DE SELECCIÓN DE MODO (2D vs 2.5D)
-       ========================================= */
-    #mode-modal {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(5, 5, 14, 0.94);
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-    .modal-title {
-      font-size: 38px;
-      font-weight: 900;
-      color: #00f0ff;
-      text-shadow: 0 0 25px rgba(0, 240, 255, 0.8);
-      margin-bottom: 6px;
-      text-align: center;
-      letter-spacing: 2px;
-    }
-    .modal-subtitle {
-      font-size: 15px;
-      color: #ff0055;
-      text-shadow: 0 0 10px rgba(255, 0, 85, 0.6);
-      font-weight: 700;
-      margin-bottom: 28px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-    }
-    .mode-cards {
-      display: flex;
-      gap: 24px;
-      max-width: 680px;
-      width: 100%;
-      justify-content: center;
-    }
-    .mode-card {
-      flex: 1;
-      max-width: 300px;
-      background: rgba(16, 12, 38, 0.85);
-      border: 2px solid #00f0ff;
-      border-radius: 12px;
-      padding: 24px 18px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      cursor: pointer;
-      position: relative;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
-    }
-    .mode-card:hover {
-      transform: translateY(-4px) scale(1.02);
-      box-shadow: 0 0 35px rgba(0, 240, 255, 0.6);
-      border-color: #ffffff;
-    }
-    .mode-card-3d {
-      border-color: #ffe600;
-      box-shadow: 0 0 20px rgba(255, 230, 0, 0.25);
-    }
-    .mode-card-3d:hover {
-      box-shadow: 0 0 35px rgba(255, 230, 0, 0.6);
-    }
-    .mode-badge {
-      position: absolute;
-      top: -12px;
-      right: 14px;
-      background: #ff0055;
-      color: #ffffff;
-      font-size: 11px;
-      font-weight: 900;
-      padding: 3px 8px;
-      border-radius: 4px;
-      letter-spacing: 1px;
-      box-shadow: 0 0 10px rgba(255, 0, 85, 0.8);
-    }
-    .mode-icon {
-      font-size: 44px;
-      margin-bottom: 12px;
-    }
-    .mode-card-title {
-      font-size: 19px;
-      font-weight: 800;
-      margin-bottom: 8px;
-      color: #ffffff;
-    }
-    .mode-desc {
-      font-size: 12px;
-      color: #a4b3d6;
-      line-height: 1.45;
-      margin-bottom: 18px;
-    }
-    .mode-start-btn {
-      width: 100%;
-      padding: 10px 0;
-      border: none;
-      border-radius: 6px;
-      background: #00f0ff;
-      color: #05050d;
-      font-weight: 800;
-      font-size: 13px;
-      letter-spacing: 1px;
-      cursor: pointer;
-      box-shadow: 0 0 14px rgba(0, 240, 255, 0.5);
-      transition: background 0.1s ease;
-    }
-    .mode-start-btn-3d {
-      background: #ffe600;
-      box-shadow: 0 0 14px rgba(255, 230, 0, 0.5);
     }
 
     /* =========================================
@@ -365,37 +230,11 @@
     <!-- Canvas 2D Retro -->
     <canvas id="gameCanvas" width="960" height="540"></canvas>
     
-    <!-- Canvas 3D WebGL (Three.js) -->
-    <canvas id="threeCanvas"></canvas>
-
-    <div class="scanlines" id="scanlinesOverlay"></div>
     <div class="vignette"></div>
-
-    <!-- Modal de Selección de Modo (2D Retro vs 2.5D) -->
-    <div id="mode-modal">
-      <div class="modal-title">CYBER SURGE</div>
-      <div class="modal-subtitle">PROTOCOL ZERO // SELECCIONA EL MODO</div>
-      <div class="mode-cards">
-        <div class="mode-card" id="btn-select-2d">
-          <div class="mode-icon">👾</div>
-          <div class="mode-card-title">2D RETRO</div>
-          <div class="mode-desc">Motor procedural Canvas clásico, scanlines CRT, estética synthwave 90s.</div>
-          <button class="mode-start-btn">JUGAR EN 2D</button>
-        </div>
-        <div class="mode-card mode-card-3d" id="btn-select-3d">
-          <div class="mode-badge">3D REAL</div>
-          <div class="mode-icon">⚡</div>
-          <div class="mode-card-title">2.5D NEXT-GEN</div>
-          <div class="mode-desc">WebGL Three.js, modelos 3D, iluminación volumétrica, sombras y cámara cinemática.</div>
-          <button class="mode-start-btn mode-start-btn-3d">JUGAR EN 2.5D</button>
-        </div>
-      </div>
-    </div>
 
     <!-- Controles táctiles virtuales en pantalla -->
     <div id="mobile-controls">
       <div class="mobile-top-bar">
-        <button id="touch-switch-mode" class="touch-btn touch-btn-small" style="border-color:#00f0ff; color:#00f0ff;">🎮 MODO: 2D</button>
         <button id="touch-layout" class="touch-btn touch-btn-small" title="Invertir posición de mandos">⇄ MANDOS: DIESTRO</button>
         <button id="touch-mute" class="touch-btn touch-btn-small">🔊 AUDIO</button>
         <button id="touch-restart" class="touch-btn touch-btn-small">🔄 REINICIAR</button>
@@ -406,6 +245,7 @@
           <button id="touch-right" class="touch-btn touch-dir">▶</button>
         </div>
         <div class="touch-actions">
+          <button id="touch-hat" class="touch-btn touch-btn-small" style="display:none; width:66px; height:66px; border-radius:50%; font-size:20px; border-color:#ffe600; color:#ffe600; margin-right:10px;">👒</button>
           <button id="touch-jump" class="touch-btn touch-jump">▲ SALTO</button>
         </div>
       </div>
@@ -415,7 +255,7 @@
   <div id="instructions-bar">
     <div>Moverse: <span>A/D o Flechas</span></div>
     <div>Saltar: <span>Espacio / W / Arriba</span></div>
-    <div>Cambiar Modo 2D/3D: <span>Tecla C</span></div>
+    <div>Lanzar Sombrero (Fase 2+): <span>Tecla J o Tecla F</span></div>
     <div>Invertir Mandos: <span>Tecla I</span></div>
     <div>Silenciar: <span>M</span></div>
   </div>
@@ -423,8 +263,7 @@
 <script>
 /**
  * CYBER SURGE: PROTOCOL ZERO
- * Motor Híbrido: 2D Retro Canvas + 2.5D WebGL (Three.js) con Audio Procedural
- * Diseñado & Desarrollado por Antigravity
+ * Edición 2D Clásica Arcade - Con el Sacerdote y lanzamiento de sombrero teledirigido
  */
 
 // ==========================================
@@ -593,6 +432,42 @@ class SoundEngine {
     } catch (e) {}
   }
 
+  playHatThrow() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    } catch (e) {}
+  }
+
+  playHatHit() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(550, now);
+      osc.frequency.setValueAtTime(740, now + 0.06);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.19);
+    } catch (e) {}
+  }
+
   playLevelWin() {
     if (this.muted || !this.ctx) return;
     const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
@@ -721,8 +596,8 @@ class Player {
   reset() {
     this.x = this.spawnX;
     this.y = this.spawnY;
-    this.w = 26;
-    this.h = 42;
+    this.w = 34; // Personaje ampliado de tamaño para máxima visibilidad y presencia
+    this.h = 54;
     this.vx = 0;
     this.vy = 0;
     this.grounded = false;
@@ -734,6 +609,7 @@ class Player {
     this.invincibleTimer = 0;
     this.isDead = false;
     this.afterImages = [];
+    this.hasHat = true; // El sombrero está puesto hasta que se lanza
   }
 
   update(input, level, particles) {
@@ -944,219 +820,236 @@ class Player {
     if (isAscending) {
       // Al saltar hacia arriba, el manto ondea hacia abajo y hacia atrás
       ctx.beginPath();
-      ctx.moveTo(6, 16);
-      ctx.quadraticCurveTo(-8, 25 + Math.sin(timeSec * 3) * 3, -16, 36);
-      ctx.lineTo(-11, 40);
-      ctx.quadraticCurveTo(-4, 28, 8, 22);
+      ctx.moveTo(8, 20);
+      ctx.quadraticCurveTo(-10, 32 + Math.sin(timeSec * 3) * 4, -22, 48);
+      ctx.lineTo(-15, 54);
+      ctx.quadraticCurveTo(-5, 36, 12, 28);
       ctx.closePath();
       ctx.fill();
       // Borde dorado
       ctx.strokeStyle = '#ffe600';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 2;
       ctx.stroke();
     } else if (isFalling) {
       // Al caer, el manto se infla hacia arriba por la resistencia del aire
       ctx.beginPath();
-      ctx.moveTo(6, 16);
-      ctx.quadraticCurveTo(-10, 8 + Math.sin(timeSec * 3) * 3, -18, 4);
-      ctx.lineTo(-14, 0);
-      ctx.quadraticCurveTo(-4, 10, 8, 20);
+      ctx.moveTo(8, 20);
+      ctx.quadraticCurveTo(-14, 10 + Math.sin(timeSec * 3) * 4, -24, 4);
+      ctx.lineTo(-18, -2);
+      ctx.quadraticCurveTo(-6, 12, 12, 26);
       ctx.closePath();
       ctx.fill();
       ctx.strokeStyle = '#ffe600';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 2;
       ctx.stroke();
     } else if (isRunning) {
       // Al correr, el manto vuela elegantemente
-      const capeWave1 = Math.sin(runCycle * 2) * 5;
-      const capeWave2 = Math.cos(runCycle * 2) * 6;
+      const capeWave1 = Math.sin(runCycle * 2) * 6;
+      const capeWave2 = Math.cos(runCycle * 2) * 7;
       ctx.beginPath();
-      ctx.moveTo(6, 16);
-      ctx.quadraticCurveTo(-8, 16 + capeWave1, -16, 20 + capeWave2);
-      ctx.lineTo(-14, 28 + capeWave2);
-      ctx.quadraticCurveTo(-6, 22 + capeWave1, 8, 24);
+      ctx.moveTo(8, 20);
+      ctx.quadraticCurveTo(-10, 20 + capeWave1, -22, 26 + capeWave2);
+      ctx.lineTo(-18, 38 + capeWave2);
+      ctx.quadraticCurveTo(-8, 30 + capeWave1, 12, 32);
       ctx.closePath();
       ctx.fill();
       ctx.strokeStyle = '#ffe600';
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = 1.6;
       ctx.stroke();
     } else {
       // En reposo (idle)
-      const breath = Math.sin(timeSec * 1.5) * 2;
-      ctx.fillRect(-4, 16 + breath, 7, 18);
+      const breath = Math.sin(timeSec * 1.5) * 2.5;
+      ctx.fillRect(-6, 20 + breath, 10, 24);
       ctx.fillStyle = '#ffe600';
-      ctx.fillRect(-5, 32 + breath, 8, 2);
+      ctx.fillRect(-7, 42 + breath, 11, 2.5);
     }
     ctx.restore();
 
     // --- 2. PIERNAS, FALDÓN DE LA SOTANA Y ZAPATOS SACERDOTALES ---
     ctx.save();
-    // Sotana negra talar
     ctx.fillStyle = '#0f172a';
     if (isAscending) {
       // Pierna trasera estirada, delantera recogida
-      ctx.fillRect(4, 25, 7, 12);
-      ctx.fillRect(15, 23, 7, 9);
+      ctx.fillRect(5, 33, 9, 16);
+      ctx.fillRect(20, 30, 9, 12);
       // Zapatos negros de cuero con hebilla dorada
       ctx.fillStyle = '#020617';
-      ctx.fillRect(3, 37, 8, 5);
-      ctx.fillRect(16, 32, 8, 5);
+      ctx.fillRect(4, 49, 11, 5);
+      ctx.fillRect(21, 42, 11, 5);
       ctx.fillStyle = '#ffe600';
-      ctx.fillRect(5, 38, 3, 2);
-      ctx.fillRect(18, 33, 3, 2);
+      ctx.fillRect(7, 50, 4, 3);
+      ctx.fillRect(24, 43, 4, 3);
     } else if (isFalling) {
       // Piernas amortiguando
-      ctx.fillRect(4, 26, 7, 12);
-      ctx.fillRect(15, 26, 7, 12);
+      ctx.fillRect(5, 34, 9, 16);
+      ctx.fillRect(20, 34, 9, 16);
       ctx.fillStyle = '#020617';
-      ctx.fillRect(3, 38, 8, 4);
-      ctx.fillRect(15, 38, 8, 4);
+      ctx.fillRect(4, 50, 11, 4);
+      ctx.fillRect(20, 50, 11, 4);
       ctx.fillStyle = '#ffe600';
-      ctx.fillRect(5, 39, 3, 2);
-      ctx.fillRect(17, 39, 3, 2);
+      ctx.fillRect(7, 51, 4, 2);
+      ctx.fillRect(23, 51, 4, 2);
     } else if (isRunning) {
       // Zancada sacerdotal fluida
-      const stepSwing = Math.sin(runCycle) * 6;
-      ctx.fillRect(4 + stepSwing, 26, 7, 12);
-      ctx.fillRect(15 - stepSwing, 26, 7, 12);
+      const stepSwing = Math.sin(runCycle) * 8;
+      ctx.fillRect(5 + stepSwing, 34, 9, 16);
+      ctx.fillRect(20 - stepSwing, 34, 9, 16);
       ctx.fillStyle = '#020617';
-      ctx.fillRect(3 + stepSwing, 38, 8, 4);
-      ctx.fillRect(14 - stepSwing, 38, 8, 4);
+      ctx.fillRect(4 + stepSwing, 50, 11, 4);
+      ctx.fillRect(19 - stepSwing, 50, 11, 4);
       ctx.fillStyle = '#ffe600';
-      ctx.fillRect(5 + stepSwing, 39, 3, 2);
-      ctx.fillRect(16 - stepSwing, 39, 3, 2);
+      ctx.fillRect(7 + stepSwing, 51, 4, 2);
+      ctx.fillRect(22 - stepSwing, 51, 4, 2);
     } else {
       // Reposo
-      const idleBob = Math.sin(timeSec * 2) * 1;
-      ctx.fillRect(4, 26 + idleBob, 7, 13);
-      ctx.fillRect(15, 26 + idleBob, 7, 13);
+      const idleBob = Math.sin(timeSec * 2) * 1.2;
+      ctx.fillRect(5, 34 + idleBob, 9, 16);
+      ctx.fillRect(20, 34 + idleBob, 9, 16);
       ctx.fillStyle = '#020617';
-      ctx.fillRect(3, 39 + idleBob, 8, 3);
-      ctx.fillRect(14, 39 + idleBob, 8, 3);
+      ctx.fillRect(4, 50 + idleBob, 11, 4);
+      ctx.fillRect(19, 50 + idleBob, 11, 4);
       ctx.fillStyle = '#ffe600';
-      ctx.fillRect(5, 40 + idleBob, 3, 2);
-      ctx.fillRect(16, 40 + idleBob, 3, 2);
+      ctx.fillRect(7, 51 + idleBob, 4, 2);
+      ctx.fillRect(22, 51 + idleBob, 4, 2);
     }
     ctx.restore();
 
     // --- 3. CUERPO: SOTANA NEGRA, BOTONADURA CENTRAL Y ALZACUELLOS BLANCO ---
-    const torsoY = isRunning ? 13 + Math.abs(Math.sin(runCycle)) * 1.5 : (isJumping ? 11 : 13);
+    const torsoY = isRunning ? 17 + Math.abs(Math.sin(runCycle)) * 2 : (isJumping ? 14 : 17);
     ctx.save();
     // Cuerpo de la sotana negra
     ctx.fillStyle = '#1e293b';
-    ctx.fillRect(3, torsoY, 20, 15);
+    ctx.fillRect(4, torsoY, 26, 19);
     ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(3, torsoY, 20, 15);
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(4, torsoY, 26, 19);
 
     // Botonadura frontal vertical de la sotana
     ctx.fillStyle = '#000000';
-    ctx.fillRect(12, torsoY + 2, 2, 13);
+    ctx.fillRect(16, torsoY + 2, 2.5, 17);
     ctx.fillStyle = '#ffffff';
-    for (let b = 0; b < 4; b++) {
-      ctx.fillRect(12, torsoY + 3 + b * 3, 2, 1);
+    for (let b = 0; b < 5; b++) {
+      ctx.fillRect(16, torsoY + 3 + b * 3.5, 2.5, 1.2);
     }
 
     // Faja / Cíngulo negro con caída
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(2, torsoY + 11, 22, 3);
+    ctx.fillRect(3, torsoY + 14, 28, 4);
     ctx.fillStyle = '#ffe600'; // Detalle dorado del cíngulo
-    ctx.fillRect(10, torsoY + 11, 6, 3);
-    ctx.fillRect(11, torsoY + 14, 4, 6);
+    ctx.fillRect(13, torsoY + 14, 8, 4);
+    ctx.fillRect(15, torsoY + 18, 5, 8);
 
     // Pectoral / Cruz de oro bendita en el pecho
     ctx.fillStyle = '#ffe600';
     ctx.shadowColor = '#ffe600';
-    ctx.shadowBlur = 8;
-    ctx.fillRect(7, torsoY + 4, 3, 6);
-    ctx.fillRect(5, torsoY + 5, 7, 2);
+    ctx.shadowBlur = 10;
+    ctx.fillRect(9, torsoY + 5, 4, 8);
+    ctx.fillRect(6, torsoY + 7, 10, 2.5);
     ctx.restore();
 
     // Cuello negro con clériman / ALZACUELLOS blanco característico
     ctx.save();
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(6, torsoY - 2, 14, 4);
+    ctx.fillRect(8, torsoY - 3, 18, 5);
     // Alzacuellos blanco inconfundible
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = 6;
-    ctx.fillRect(10, torsoY - 2, 6, 3);
+    ctx.shadowBlur = 8;
+    ctx.fillRect(13, torsoY - 3, 8, 4);
     ctx.restore();
 
     // --- 4. BRAZOS CON MANGA ANCHA Y MANOS ---
     ctx.save();
-    const armSwing = isRunning ? Math.sin(runCycle) * 5 : (isAscending ? -4 : (isFalling ? 3 : 0));
+    const armSwing = isRunning ? Math.sin(runCycle) * 6 : (isAscending ? -5 : (isFalling ? 4 : 0));
     // Manga negra
     ctx.fillStyle = '#1e293b';
-    ctx.fillRect(6 - armSwing * 0.4, torsoY + 1, 6, 12);
+    ctx.fillRect(8 - armSwing * 0.4, torsoY + 1, 8, 15);
     // Puño blanco de la camisa
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(6 - armSwing * 0.4, torsoY + 11, 6, 2);
+    ctx.fillRect(8 - armSwing * 0.4, torsoY + 14, 8, 2.5);
     // Mano color piel
     ctx.fillStyle = '#fbcfe8';
-    ctx.fillRect(7 - armSwing * 0.4, torsoY + 13, 5, 4);
+    ctx.fillRect(9 - armSwing * 0.4, torsoY + 16.5, 6.5, 5);
     ctx.restore();
 
     // --- 5. CABEZA, RASGOS FACIALES Y GAFAS REDONDAS (Fiel a la foto) ---
-    const headY = torsoY - 14;
+    const headY = torsoY - 17;
     ctx.save();
 
     // Tono de piel sonrosado/claro realista
     ctx.fillStyle = '#fbeee6';
-    // Cráneo calvo con frente ancha y despejada
+    // Cráneo con frente ancha y despejada
     ctx.beginPath();
-    ctx.ellipse(13, headY + 6, 9, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(17, headY + 8, 11, 10, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Cabello lateral oscuro (calvicie superior pronunciada)
     ctx.fillStyle = '#262626';
     // Mechones laterales sienes y coronilla baja
     ctx.beginPath();
-    ctx.arc(6, headY + 7, 4, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.arc(8, headY + 9, 5, Math.PI * 0.5, Math.PI * 1.5);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(20, headY + 7, 4, Math.PI * 1.5, Math.PI * 0.5);
+    ctx.arc(26, headY + 9, 5, Math.PI * 1.5, Math.PI * 0.5);
     ctx.fill();
 
     // Cejas oscuras finas
     ctx.fillStyle = '#404040';
-    ctx.fillRect(9, headY + 3, 4, 1);
-    ctx.fillRect(15, headY + 3, 4, 1);
+    ctx.fillRect(12, headY + 4, 5, 1.5);
+    ctx.fillRect(19, headY + 4, 5, 1.5);
 
     // GAFAS REDONDAS METÁLICAS CON PUENTE (Clave de la foto)
     ctx.strokeStyle = '#94a3b8'; // Montura plateada
-    ctx.lineWidth = 1.3;
+    ctx.lineWidth = 1.6;
     // Lente izquierda
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.beginPath();
-    ctx.arc(10, headY + 6, 3, 0, Math.PI * 2);
+    ctx.arc(13.5, headY + 8, 3.8, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     // Lente derecha
     ctx.beginPath();
-    ctx.arc(16, headY + 6, 3, 0, Math.PI * 2);
+    ctx.arc(21.5, headY + 8, 3.8, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     // Puente de las gafas
     ctx.beginPath();
-    ctx.moveTo(13, headY + 6);
-    ctx.lineTo(13, headY + 6);
+    ctx.moveTo(17.3, headY + 8);
+    ctx.lineTo(17.7, headY + 8);
     ctx.stroke();
 
     // Ojos detrás de los cristales
     ctx.fillStyle = '#1e293b';
-    ctx.fillRect(9, headY + 5.5, 2, 2);
-    ctx.fillRect(15, headY + 5.5, 2, 2);
+    ctx.fillRect(12, headY + 7, 3, 2.5);
+    ctx.fillRect(20, headY + 7, 3, 2.5);
 
     // Nariz y boca serena
     ctx.fillStyle = '#f4c7ab';
-    ctx.fillRect(12, headY + 8, 2, 3); // Nariz
+    ctx.fillRect(16, headY + 10, 2.5, 4); // Nariz
     ctx.fillStyle = '#c2410c';
-    ctx.fillRect(11, headY + 12, 4, 1); // Labios
+    ctx.fillRect(14.5, headY + 15, 5, 1.5); // Labios
 
     // Oreja visible
     ctx.fillStyle = '#fbcfe8';
-    ctx.fillRect(4, headY + 5, 2, 4);
+    ctx.fillRect(5.5, headY + 7, 3, 5);
+
+    // --- 6. SOMBRERO TEJA SACERDOTAL / SATURNO (Si lo tiene puesto) ---
+    if (this.hasHat) {
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = '#020617';
+      ctx.lineWidth = 1.5;
+      // Ala ancha circular curvada del sombrero eclesiástico
+      ctx.beginPath();
+      ctx.ellipse(17, headY - 1, 16, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Copa del sombrero
+      ctx.fillRect(11, headY - 8, 12, 8);
+      ctx.strokeRect(11, headY - 8, 12, 8);
+      // Cinta negra/dorada del sombrero
+      ctx.fillStyle = '#ffe600';
+      ctx.fillRect(11, headY - 3, 12, 2);
+    }
 
     ctx.restore();
 
@@ -1907,561 +1800,15 @@ function buildLevels() {
 }
 
 // ==========================================
-// 6. MOTOR 2.5D CON THREE.JS
-// ==========================================
-class ThreeRenderer {
-  constructor(canvas) {
-    this.canvas = canvas;
-    this.width = 960;
-    this.height = 540;
-    this.initScene();
-    this.meshes = {
-      platforms: [],
-      enemies: [],
-      cores: [],
-      hazards: [],
-      jumpPads: [],
-      portal: null
-    };
-  }
-
-  initScene() {
-    this.scene = new THREE.Scene();
-    // Cielo azul medianoche luminoso y limpio
-    this.scene.background = new THREE.Color(0x151c38);
-    this.scene.fog = new THREE.FogExp2(0x151c38, 0.00032);
-
-    this.camera = new THREE.PerspectiveCamera(48, this.width / this.height, 1, 3500);
-    this.camera.position.set(200, 350, 520);
-
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.canvas,
-      antialias: true,
-      powerPreference: 'high-performance'
-    });
-    this.renderer.setSize(this.width, this.height, false);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    // Iluminación mejorada de alta visibilidad (Cero oscuridad)
-    const ambient = new THREE.AmbientLight(0x94a3b8, 2.4);
-    this.scene.add(ambient);
-
-    const hemiLight = new THREE.HemisphereLight(0xa5c4ff, 0x1e2742, 2.0);
-    this.scene.add(hemiLight);
-
-    this.dirLight = new THREE.DirectionalLight(0xffffff, 2.2);
-    this.dirLight.position.set(350, 750, 450);
-    this.dirLight.castShadow = true;
-    this.dirLight.shadow.mapSize.width = 1024;
-    this.dirLight.shadow.mapSize.height = 1024;
-    this.scene.add(this.dirLight);
-
-    const pinkLight = new THREE.PointLight(0xff0055, 2.8, 1000);
-    pinkLight.position.set(0, 320, 160);
-    this.scene.add(pinkLight);
-    this.pinkLight = pinkLight;
-
-    this.createBackgroundCity();
-    this.createPlayerMesh();
-  }
-
-  createBackgroundCity() {
-    const cityGroup = new THREE.Group();
-    // Siluetas lejanas limpias, sin franjas horizontales que se confundan con plataformas
-    const matBuilding = new THREE.MeshStandardMaterial({
-      color: 0x0f152d,
-      roughness: 0.8,
-      metalness: 0.3
-    });
-
-    for (let i = 0; i < 40; i++) {
-      const bw = 60 + Math.random() * 90;
-      const bh = 260 + Math.random() * 450;
-      const bd = 60 + Math.random() * 90;
-      const geom = new THREE.BoxGeometry(bw, bh, bd);
-      const building = new THREE.Mesh(geom, matBuilding);
-      // Colocados bien atrás en Z para separar la profundidad
-      building.position.set(
-        (i - 4) * 110 + (Math.random() * 25),
-        bh / 2 - 130,
-        -420 - Math.random() * 400
-      );
-      cityGroup.add(building);
-    }
-    this.scene.add(cityGroup);
-  }
-
-  createPlayerMesh() {
-    this.playerGroup = new THREE.Group();
-
-    // Materiales del Sacerdote con alto contraste y fidelidad histórica
-    const matCassock = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.1 });
-    const matSkin = new THREE.MeshStandardMaterial({ color: 0xfbeee6, roughness: 0.5 });
-    const matHair = new THREE.MeshStandardMaterial({ color: 0x262626, roughness: 0.8 });
-    const matCollar = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const matGoldCross = new THREE.MeshStandardMaterial({ color: 0xffe600, emissive: 0xffe600, emissiveIntensity: 0.8, roughness: 0.2 });
-    const matShoe = new THREE.MeshStandardMaterial({ color: 0x05050d, roughness: 0.3 });
-    const matGlasses = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.1, metalness: 0.9 });
-    const matGlassLens = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 });
-    const matCape = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 });
-
-    // Torso: Sotana negra con caída sacerdotal
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(20, 18, 16), matCassock);
-    torso.position.y = 20;
-    torso.castShadow = true;
-    this.playerGroup.add(torso);
-    this.playerTorso = torso;
-
-    // Cruz pectoral de oro bendito
-    const crossV = new THREE.Mesh(new THREE.BoxGeometry(2.5, 7, 1), matGoldCross);
-    crossV.position.set(0, 19, 8.6);
-    const crossH = new THREE.Mesh(new THREE.BoxGeometry(6, 2.5, 1), matGoldCross);
-    crossH.position.set(0, 20.5, 8.6);
-    this.playerGroup.add(crossV);
-    this.playerGroup.add(crossH);
-
-    // Cuello negro y Alzacuellos blanco clériman
-    const neck = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 10), matCassock);
-    neck.position.y = 29;
-    this.playerGroup.add(neck);
-    const clericalCollar = new THREE.Mesh(new THREE.BoxGeometry(6, 3, 1), matCollar);
-    clericalCollar.position.set(0, 29, 5.2);
-    this.playerGroup.add(clericalCollar);
-
-    // Cabeza: Cráneo calvo con frente ancha despejada
-    const headGroup = new THREE.Group();
-    headGroup.position.set(0, 36, 0);
-
-    const head = new THREE.Mesh(new THREE.SphereGeometry(8.5, 16, 16), matSkin);
-    head.scale.set(1, 1.1, 1);
-    head.castShadow = true;
-    headGroup.add(head);
-
-    // Mechones de pelo laterales y coronilla baja oscura (calvicie del sacerdote)
-    const hairLeft = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 9), matHair);
-    hairLeft.position.set(-7.8, -1, -1);
-    const hairRight = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 9), matHair);
-    hairRight.position.set(7.8, -1, -1);
-    const hairBack = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 2), matHair);
-    hairBack.position.set(0, -1.5, -7.8);
-    headGroup.add(hairLeft);
-    headGroup.add(hairRight);
-    headGroup.add(hairBack);
-
-    // Gafas redondas de montura fina y cristales reflectantes
-    const glassGroup = new THREE.Group();
-    glassGroup.position.set(0, 0.5, 7.8);
-
-    const leftFrame = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.35, 8, 16), matGlasses);
-    leftFrame.position.x = -3.2;
-    const rightFrame = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.35, 8, 16), matGlasses);
-    rightFrame.position.x = 3.2;
-    const bridge = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.5, 0.5), matGlasses);
-
-    const leftLens = new THREE.Mesh(new THREE.CircleGeometry(2, 12), matGlassLens);
-    leftLens.position.x = -3.2;
-    const rightLens = new THREE.Mesh(new THREE.CircleGeometry(2, 12), matGlassLens);
-    rightLens.position.x = 3.2;
-
-    glassGroup.add(leftFrame);
-    glassGroup.add(rightFrame);
-    glassGroup.add(bridge);
-    glassGroup.add(leftLens);
-    glassGroup.add(rightLens);
-    headGroup.add(glassGroup);
-
-    this.playerGroup.add(headGroup);
-
-    // Manto sacerdotal ondeante (en lugar de bufanda)
-    const cape = new THREE.Mesh(new THREE.BoxGeometry(16, 6, 24), matCape);
-    cape.position.set(0, 24, -12);
-    this.playerGroup.add(cape);
-    this.playerScarf = cape;
-
-    // Brazos con mangas de sotana anchas y manos
-    const leftArm = new THREE.Group();
-    leftArm.position.set(-12, 26, 0);
-    const leftSleeve = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 7), matCassock);
-    leftSleeve.position.y = -6;
-    const leftHand = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 5), matSkin);
-    leftHand.position.y = -13;
-    leftArm.add(leftSleeve);
-    leftArm.add(leftHand);
-    this.playerGroup.add(leftArm);
-    this.leftArm = leftArm;
-
-    const rightArm = new THREE.Group();
-    rightArm.position.set(12, 26, 0);
-    const rightSleeve = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 7), matCassock);
-    rightSleeve.position.y = -6;
-    const rightHand = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 5), matSkin);
-    rightHand.position.y = -13;
-    rightArm.add(rightSleeve);
-    rightArm.add(rightHand);
-    this.playerGroup.add(rightArm);
-    this.rightArm = rightArm;
-
-    // Piernas articuladas con faldón de sotana y zapatos negros de hebilla
-    this.leftLegGroup = new THREE.Group();
-    this.leftLegGroup.position.set(-5, 14, 0);
-    this.leftLeg = new THREE.Mesh(new THREE.BoxGeometry(6.5, 12, 6.5), matCassock);
-    this.leftLeg.position.y = -5;
-    this.leftLeg.castShadow = true;
-    const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 9), matShoe);
-    leftShoe.position.set(0, -10, 1.5);
-    const leftBuckle = new THREE.Mesh(new THREE.BoxGeometry(3, 1.5, 1), matGoldCross);
-    leftBuckle.position.set(0, -8.5, 6);
-    this.leftLegGroup.add(this.leftLeg);
-    this.leftLegGroup.add(leftShoe);
-    this.leftLegGroup.add(leftBuckle);
-    this.playerGroup.add(this.leftLegGroup);
-
-    this.rightLegGroup = new THREE.Group();
-    this.rightLegGroup.position.set(5, 14, 0);
-    this.rightLeg = new THREE.Mesh(new THREE.BoxGeometry(6.5, 12, 6.5), matCassock);
-    this.rightLeg.position.y = -5;
-    this.rightLeg.castShadow = true;
-    const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 9), matShoe);
-    rightShoe.position.set(0, -10, 1.5);
-    const rightBuckle = new THREE.Mesh(new THREE.BoxGeometry(3, 1.5, 1), matGoldCross);
-    rightBuckle.position.set(0, -8.5, 6);
-    this.rightLegGroup.add(this.rightLeg);
-    this.rightLegGroup.add(rightShoe);
-    this.rightLegGroup.add(rightBuckle);
-    this.playerGroup.add(this.rightLegGroup);
-
-    this.scene.add(this.playerGroup);
-  }
-
-  buildLevel3D(level) {
-    const toRemove = [
-      ...this.meshes.platforms,
-      ...this.meshes.enemies,
-      ...this.meshes.cores,
-      ...this.meshes.hazards,
-      ...this.meshes.jumpPads
-    ];
-    if (this.meshes.portal) toRemove.push(this.meshes.portal);
-    for (const m of toRemove) {
-      this.scene.remove(m);
-    }
-    this.meshes.platforms = [];
-    this.meshes.enemies = [];
-    this.meshes.cores = [];
-    this.meshes.hazards = [];
-    this.meshes.jumpPads = [];
-
-    // Plataformas sólidas de alta visibilidad
-    const matPlat = new THREE.MeshStandardMaterial({ color: 0x243258, roughness: 0.3, metalness: 0.4 });
-    const matTopNeon = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff,
-      emissive: 0x00f0ff,
-      emissiveIntensity: 1.5,
-      roughness: 0.1
-    });
-    const matMovingNeon = new THREE.MeshStandardMaterial({
-      color: 0xffe600,
-      emissive: 0xffe600,
-      emissiveIntensity: 1.5,
-      roughness: 0.1
-    });
-
-    const allPlats = [...level.platforms, ...level.movingPlatforms];
-    for (const p of allPlats) {
-      const platGroup = new THREE.Group();
-      const geom = new THREE.BoxGeometry(p.w, p.h, 60);
-      const mesh = new THREE.Mesh(geom, matPlat);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      platGroup.add(mesh);
-
-      // Superficie superior gruesa e inconfundible con luz propia
-      const topGeom = new THREE.BoxGeometry(p.w, 7, 64);
-      const topMesh = new THREE.Mesh(topGeom, p.isMoving ? matMovingNeon : matTopNeon);
-      topMesh.position.y = p.h / 2;
-      platGroup.add(topMesh);
-
-      platGroup.position.set(p.x + p.w / 2, 600 - p.y - p.h / 2, 0);
-      platGroup.userData = { platRef: p };
-      this.scene.add(platGroup);
-      this.meshes.platforms.push(platGroup);
-    }
-
-    const matPad = new THREE.MeshStandardMaterial({ color: 0x00ff66, emissive: 0x00ff66, emissiveIntensity: 0.6 });
-    for (const pad of level.jumpPads) {
-      const padMesh = new THREE.Mesh(new THREE.BoxGeometry(pad.w, pad.h, 50), matPad);
-      padMesh.position.set(pad.x + pad.w / 2, 600 - pad.y - pad.h / 2, 0);
-      this.scene.add(padMesh);
-      this.meshes.jumpPads.push(padMesh);
-    }
-
-    const matAcid = new THREE.MeshStandardMaterial({
-      color: 0x00ff66,
-      emissive: 0x00ff66,
-      emissiveIntensity: 0.8,
-      transparent: true,
-      opacity: 0.85,
-      roughness: 0.1
-    });
-    const matSpike = new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0xff0055, emissiveIntensity: 0.7 });
-
-    for (const h of level.hazards) {
-      if (h.type === 'acid') {
-        const acidMesh = new THREE.Mesh(new THREE.BoxGeometry(h.w, h.h, 70), matAcid);
-        acidMesh.position.set(h.x + h.w / 2, 600 - h.y - h.h / 2, 0);
-        this.scene.add(acidMesh);
-        this.meshes.hazards.push(acidMesh);
-      } else if (h.type === 'spikes') {
-        const spikeGroup = new THREE.Group();
-        const count = Math.floor(h.w / 18);
-        const coneGeom = new THREE.ConeGeometry(9, h.h, 8);
-        for (let s = 0; s < count; s++) {
-          const cone = new THREE.Mesh(coneGeom, matSpike);
-          cone.position.set((s - count / 2) * 18 + 9, h.h / 2, 0);
-          cone.castShadow = true;
-          spikeGroup.add(cone);
-        }
-        spikeGroup.position.set(h.x + h.w / 2, 600 - h.y - h.h, 0);
-        this.scene.add(spikeGroup);
-        this.meshes.hazards.push(spikeGroup);
-      } else if (h.type === 'laser') {
-        const laserGeom = new THREE.CylinderGeometry(4, 4, h.h, 12);
-        const laserMat = new THREE.MeshBasicMaterial({ color: 0xff0055, transparent: true, opacity: 0.9 });
-        const laserMesh = new THREE.Mesh(laserGeom, laserMat);
-        laserMesh.position.set(h.x + h.w / 2, 600 - h.y - h.h / 2, 0);
-        laserMesh.userData = { hazardRef: h };
-        this.scene.add(laserMesh);
-        this.meshes.hazards.push(laserMesh);
-      }
-    }
-
-    const matCore = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff,
-      emissive: 0x00f0ff,
-      emissiveIntensity: 0.9,
-      metalness: 0.9,
-      roughness: 0.1
-    });
-    for (const core of level.cores) {
-      const coreMesh = new THREE.Mesh(new THREE.OctahedronGeometry(12, 0), matCore);
-      coreMesh.position.set(core.x, 600 - core.y, 0);
-      coreMesh.userData = { coreRef: core };
-      this.scene.add(coreMesh);
-      this.meshes.cores.push(coreMesh);
-    }
-
-    const portalGroup = new THREE.Group();
-    const ringMat1 = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true });
-    const ringMat2 = new THREE.MeshBasicMaterial({ color: 0xff0055 });
-    const ring1 = new THREE.Mesh(new THREE.TorusGeometry(28, 3, 12, 32), ringMat1);
-    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(18, 2, 12, 32), ringMat2);
-    portalGroup.add(ring1);
-    portalGroup.add(ring2);
-    portalGroup.position.set(level.portal.x + level.portal.w / 2, 600 - level.portal.y - level.portal.h / 2, 0);
-    this.scene.add(portalGroup);
-    this.meshes.portal = portalGroup;
-
-    for (const enemy of level.enemies) {
-      const eGroup = new THREE.Group();
-      if (enemy.type === 'drone') {
-        const droneBody = new THREE.Mesh(new THREE.SphereGeometry(15, 16, 16), new THREE.MeshStandardMaterial({
-          color: 0xff0055,
-          emissive: 0xff0055,
-          emissiveIntensity: 0.85,
-          roughness: 0.2
-        }));
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(6, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffe600 }));
-        eye.position.set(10, 0, 0);
-        droneBody.add(eye);
-        droneBody.castShadow = true;
-        eGroup.add(droneBody);
-      } else if (enemy.type === 'hopper') {
-        const hopperBody = new THREE.Mesh(new THREE.BoxGeometry(24, 24, 24), new THREE.MeshStandardMaterial({
-          color: 0xffe600,
-          emissive: 0xffe600,
-          emissiveIntensity: 0.9,
-          roughness: 0.2
-        }));
-        hopperBody.castShadow = true;
-        eGroup.add(hopperBody);
-      } else if (enemy.type === 'turret') {
-        const turretBase = new THREE.Mesh(new THREE.CylinderGeometry(15, 20, 26, 12), new THREE.MeshStandardMaterial({
-          color: 0x475569,
-          roughness: 0.3
-        }));
-        const cannon = new THREE.Mesh(new THREE.BoxGeometry(22, 10, 10), new THREE.MeshStandardMaterial({
-          color: 0xff0055,
-          emissive: 0xff0055,
-          emissiveIntensity: 1.2
-        }));
-        cannon.position.set(-8, 5, 0);
-        turretBase.add(cannon);
-        turretBase.castShadow = true;
-        eGroup.add(turretBase);
-      } else if (enemy.type === 'hunter') {
-        const hunterBody = new THREE.Mesh(new THREE.ConeGeometry(16, 32, 4), new THREE.MeshStandardMaterial({
-          color: 0x00ff66,
-          emissive: 0x00ff66,
-          emissiveIntensity: 1.2
-        }));
-        hunterBody.rotation.z = Math.PI / 2;
-        eGroup.add(hunterBody);
-      } else if (enemy.type === 'apex') {
-        const apexBody = new THREE.Mesh(new THREE.BoxGeometry(30, 42, 28), new THREE.MeshStandardMaterial({
-          color: 0xff0055,
-          emissive: 0xff0055,
-          emissiveIntensity: 0.9,
-          roughness: 0.2,
-          metalness: 0.8
-        }));
-        const visor = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 4), new THREE.MeshBasicMaterial({ color: 0xffe600 }));
-        visor.position.set(0, 10, 14.5);
-        apexBody.add(visor);
-        apexBody.castShadow = true;
-        eGroup.add(apexBody);
-      }
-      eGroup.userData = { enemyRef: enemy };
-      this.scene.add(eGroup);
-      this.meshes.enemies.push(eGroup);
-    }
-  }
-
-  render(player, level, particles, projectiles) {
-    const time = Date.now() * 0.003;
-
-    this.playerGroup.position.set(player.x + player.w / 2, 600 - player.y - player.h, 0);
-    this.playerGroup.scale.x = player.facing;
-    this.playerGroup.visible = !(player.invincibleTimer > 0 && Math.floor(player.invincibleTimer / 4) % 2 === 0);
-
-    // Cinemática y articulación dinámica 3D del personaje
-    const isGrounded = player.grounded;
-    const isRunning = isGrounded && Math.abs(player.vx) > 0.5;
-    const isAscending = !isGrounded && player.vy < 0;
-    const isFalling = !isGrounded && player.vy >= 0;
-
-    if (isRunning) {
-      const legAngle = Math.sin(player.runAnimTimer * 1.5) * 0.7;
-      this.leftLegGroup.rotation.x = legAngle;
-      this.rightLegGroup.rotation.x = -legAngle;
-      this.leftArm.rotation.x = -legAngle * 0.8;
-      this.rightArm.rotation.x = legAngle * 0.8;
-      this.playerTorso.rotation.z = Math.sin(player.runAnimTimer * 1.5) * 0.05;
-      this.playerScarf.rotation.x = 0.35 + Math.sin(time * 5) * 0.15;
-    } else if (isAscending) {
-      // Pose de salto propulsado: rodilla encogida, brazos abiertos
-      this.leftLegGroup.rotation.x = -0.6;
-      this.rightLegGroup.rotation.x = 0.4;
-      this.leftArm.rotation.x = 0.9;
-      this.rightArm.rotation.x = 0.9;
-      this.playerTorso.rotation.x = -0.15;
-      this.playerScarf.rotation.x = 0.8 + Math.sin(time * 6) * 0.2; // Bufanda hacia abajo
-    } else if (isFalling) {
-      // Pose de caída: brazos y piernas abiertas preparadas para amortiguar
-      this.leftLegGroup.rotation.x = 0.3;
-      this.rightLegGroup.rotation.x = 0.3;
-      this.leftArm.rotation.x = -0.5;
-      this.rightArm.rotation.x = -0.5;
-      this.playerTorso.rotation.x = 0.1;
-      this.playerScarf.rotation.x = -0.6 + Math.sin(time * 6) * 0.2; // Bufanda alzada por el viento
-    } else {
-      // Idle
-      this.leftLegGroup.rotation.x = 0;
-      this.rightLegGroup.rotation.x = 0;
-      this.leftArm.rotation.x = 0;
-      this.rightArm.rotation.x = 0;
-      this.playerTorso.rotation.x = 0;
-      this.playerTorso.rotation.z = 0;
-      this.playerScarf.rotation.x = Math.sin(time * 2.5) * 0.15;
-    }
-
-    this.playerScarf.rotation.y = Math.sin(time * 3) * 0.2;
-    this.pinkLight.position.set(player.x + 80, 600 - player.y + 40, 100);
-
-    for (const pm of this.meshes.platforms) {
-      const p = pm.userData.platRef;
-      if (p && p.isMoving) {
-        pm.position.set(p.x + p.w / 2, 600 - p.y - p.h / 2, 0);
-      }
-    }
-
-    for (const cm of this.meshes.cores) {
-      const c = cm.userData.coreRef;
-      if (c) {
-        cm.visible = !c.collected;
-        cm.rotation.x += 0.025;
-        cm.rotation.y += 0.035;
-      }
-    }
-
-    if (this.meshes.portal) {
-      this.meshes.portal.children[0].rotation.z += 0.02;
-      this.meshes.portal.children[1].rotation.x += 0.03;
-    }
-
-    for (const em of this.meshes.enemies) {
-      const e = em.userData.enemyRef;
-      if (e) {
-        em.visible = !e.isDead;
-        em.position.set(e.x + e.w / 2, 600 - e.y - e.h / 2, 0);
-        if (e.type === 'drone') {
-          em.position.y += Math.sin(time * 4) * 4;
-        } else if (e.type === 'apex') {
-          em.scale.x = e.facing;
-        }
-      }
-    }
-
-    for (const hm of this.meshes.hazards) {
-      const h = hm.userData && hm.userData.hazardRef;
-      if (h && h.type === 'laser') {
-        hm.visible = h.active;
-      }
-    }
-
-    const targetCamX = player.x + 120;
-    const targetCamY = 600 - player.y + 50;
-    this.camera.position.x += (targetCamX - this.camera.position.x) * 0.08;
-    this.camera.position.y += (targetCamY - this.camera.position.y) * 0.08;
-    this.camera.position.z = 460;
-    this.camera.lookAt(this.camera.position.x, this.camera.position.y - 40, 0);
-
-    this.renderer.render(this.scene, this.camera);
-  }
-
-  snapCamera(player) {
-    const targetCamX = player.x + 120;
-    const targetCamY = 600 - player.y + 50;
-    this.camera.position.set(targetCamX, targetCamY, 460);
-    this.camera.lookAt(targetCamX, targetCamY - 40, 0);
-  }
-
-  resize() {
-    const rect = this.canvas.getBoundingClientRect();
-    const w = rect.width || this.canvas.clientWidth || 960;
-    const h = rect.height || this.canvas.clientHeight || 540;
-    if (w > 0 && h > 0) {
-      this.camera.aspect = w / h;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(w, h, false);
-    }
-  }
-}
-
-// ==========================================
-// 7. CONTROLADOR PRINCIPAL DEL JUEGO
+// 6. CONTROLADOR PRINCIPAL DEL JUEGO (MOTOR 2D RETRO)
 // ==========================================
 class Game {
   constructor() {
     this.canvas2D = document.getElementById('gameCanvas');
     this.ctx = this.canvas2D.getContext('2d');
-    this.canvas3D = document.getElementById('threeCanvas');
 
     this.width = 960;
     this.height = 540;
-
-    this.renderMode = localStorage.getItem('cybersurge_render_mode') || '3D';
 
     this.input = {
       left: false,
@@ -2472,6 +1819,7 @@ class Game {
 
     this.particles = new ParticleSystem();
     this.projectiles = [];
+    this.hat = null; // Bumerán sagrado (sombrero del sacerdote)
 
     this.levels = buildLevels();
     this.currentLevelIdx = 0;
@@ -2485,84 +1833,37 @@ class Game {
     this.camX = 0;
     this.camY = 0;
 
-    this.renderer3D = new ThreeRenderer(this.canvas3D);
-
-    window.addEventListener('resize', () => {
-      if (this.renderMode === '3D') {
-        this.renderer3D.resize();
-      }
-    });
-
     this.setupInputs();
-    this.setupModeSelector();
-    this.setRenderMode(this.renderMode);
     this.loadLevel(0);
 
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
   }
 
-  setupModeSelector() {
-    const modal = document.getElementById('mode-modal');
-    const btn2D = document.getElementById('btn-select-2d');
-    const btn3D = document.getElementById('btn-select-3d');
-    const btnSwitch = document.getElementById('touch-switch-mode');
+  throwHat() {
+    // El sombrero bumerán sólo está disponible a partir de la Fase 2 (nivel idx >= 1)
+    if (this.currentLevelIdx < 1) return;
+    if (!this.player || !this.player.hasHat || this.hat || this.player.isDead || this.state !== 'PLAYING') return;
 
-    const chooseMode = (mode) => {
-      audio.init();
-      this.setRenderMode(mode);
-      modal.style.display = 'none';
-      this.state = 'PLAYING';
+    this.player.hasHat = false;
+    audio.playHatThrow();
+
+    const spawnX = this.player.facing === 1 ? this.player.x + this.player.w + 4 : this.player.x - 26;
+    const spawnY = this.player.y + 12;
+    const speed = 10;
+
+    this.hat = {
+      x: spawnX,
+      y: spawnY,
+      w: 28,
+      h: 16,
+      vx: this.player.facing * speed,
+      vy: 0,
+      rot: 0,
+      state: 'OUTBOUND',
+      timer: 0,
+      maxTimer: 25 // Vuelo hacia adelante por ~250px antes de iniciar retorno
     };
-
-    if (btn2D) btn2D.addEventListener('click', () => chooseMode('2D'));
-    if (btn3D) btn3D.addEventListener('click', () => chooseMode('3D'));
-
-    if (btnSwitch) {
-      btnSwitch.addEventListener('click', (e) => {
-        if (e.cancelable) e.preventDefault();
-        this.toggleRenderMode();
-      });
-      btnSwitch.addEventListener('touchstart', (e) => {
-        if (e.cancelable) e.preventDefault();
-        this.toggleRenderMode();
-      }, { passive: false });
-    }
-  }
-
-  setRenderMode(mode) {
-    this.renderMode = mode;
-    localStorage.setItem('cybersurge_render_mode', mode);
-
-    const btnSwitch = document.getElementById('touch-switch-mode');
-    const scanlines = document.getElementById('scanlinesOverlay');
-
-    if (mode === '3D') {
-      this.canvas3D.style.display = 'block';
-      this.canvas2D.style.display = 'none';
-      this.renderer3D.resize();
-      if (scanlines) scanlines.style.opacity = '0.25';
-      if (btnSwitch) {
-        btnSwitch.innerText = '🎮 MODO: 2.5D';
-        btnSwitch.style.borderColor = '#ffe600';
-        btnSwitch.style.color = '#ffe600';
-      }
-    } else {
-      this.canvas3D.style.display = 'none';
-      this.canvas2D.style.display = 'block';
-      if (scanlines) scanlines.style.opacity = '0.65';
-      if (btnSwitch) {
-        btnSwitch.innerText = '🎮 MODO: 2D';
-        btnSwitch.style.borderColor = '#00f0ff';
-        btnSwitch.style.color = '#00f0ff';
-      }
-    }
-  }
-
-  toggleRenderMode() {
-    const newMode = this.renderMode === '3D' ? '2D' : '3D';
-    this.setRenderMode(newMode);
-    audio.playTone(520, 'sine', 0.1, 0.25);
   }
 
   setupInputs() {
@@ -2577,6 +1878,11 @@ class Game {
         e.preventDefault();
       }
 
+      // Lanzamiento de sombrero con Tecla J o Tecla F
+      if (e.code === 'KeyJ' || e.code === 'KeyF') {
+        this.throwHat();
+      }
+
       if (e.code === 'KeyR') {
         if (this.state === 'GAME_OVER' || this.state === 'VICTORY') this.restartGame();
         else if (this.state === 'PLAYING') this.player.die();
@@ -2584,13 +1890,9 @@ class Game {
 
       if (e.code === 'KeyM') audio.toggleMute();
       if (e.code === 'KeyI') this.toggleControlLayout();
-      if (e.code === 'KeyC') this.toggleRenderMode();
 
       if (this.state === 'START') {
-        const modal = document.getElementById('mode-modal');
-        if (modal && modal.style.display === 'none') {
-          this.state = 'PLAYING';
-        }
+        this.state = 'PLAYING';
       }
     });
 
@@ -2603,19 +1905,14 @@ class Game {
     const triggerScreenTap = () => {
       audio.init();
       if (this.state === 'START') {
-        const modal = document.getElementById('mode-modal');
-        if (modal && modal.style.display === 'none') {
-          this.state = 'PLAYING';
-        }
+        this.state = 'PLAYING';
       } else if (this.state === 'GAME_OVER' || this.state === 'VICTORY') {
         this.restartGame();
       }
     };
 
     this.canvas2D.addEventListener('pointerdown', triggerScreenTap);
-    this.canvas3D.addEventListener('pointerdown', triggerScreenTap);
     window.addEventListener('pointerdown', (e) => {
-      // Si estamos en GAME_OVER o VICTORY, cualquier toque o clic en cualquier parte de la pantalla reinicia el juego
       if (this.state === 'GAME_OVER' || this.state === 'VICTORY') {
         triggerScreenTap();
       }
@@ -2668,6 +1965,7 @@ class Game {
     const btnLeft = document.getElementById('touch-left');
     const btnRight = document.getElementById('touch-right');
     const btnJump = document.getElementById('touch-jump');
+    const btnHat = document.getElementById('touch-hat');
     const btnMute = document.getElementById('touch-mute');
     const btnRestart = document.getElementById('touch-restart');
     const btnLayout = document.getElementById('touch-layout');
@@ -2693,14 +1991,24 @@ class Game {
       this.input.jump = true;
 
       if (this.state === 'START') {
-        const modal = document.getElementById('mode-modal');
-        if (modal && modal.style.display === 'none') this.state = 'PLAYING';
+        this.state = 'PLAYING';
       } else if (this.state === 'GAME_OVER' || this.state === 'VICTORY') {
         this.restartGame();
       }
     }, () => {
       this.input.jump = false;
     });
+
+    if (btnHat) {
+      const triggerHat = (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        audio.init();
+        this.throwHat();
+      };
+      btnHat.addEventListener('touchstart', triggerHat, { passive: false });
+      btnHat.addEventListener('click', triggerHat);
+    }
 
     if (btnMute) {
       const toggleAudio = (e) => {
@@ -2764,12 +2072,15 @@ class Game {
     this.level = this.levels[idx];
     this.player = new Player(this.level.playerStart.x, this.level.playerStart.y);
     this.projectiles = [];
+    this.hat = null;
     this.deathTimer = 0;
     audio.setLevel(idx + 1);
 
-    this.renderer3D.buildLevel3D(this.level);
-    this.renderer3D.snapCamera(this.player);
-    this.renderer3D.resize();
+    const btnHat = document.getElementById('touch-hat');
+    if (btnHat) {
+      btnHat.style.display = idx >= 1 ? 'flex' : 'none';
+    }
+
     this.camX = Math.max(0, Math.min(this.level.width - this.width, this.player.x - this.width * 0.38));
     this.camY = Math.max(0, Math.min(this.level.height - this.height, this.player.y - this.height * 0.55));
   }
@@ -2779,6 +2090,7 @@ class Game {
     this.score = 0;
     this.lives = 3;
     this.deathTimer = 0;
+    this.hat = null;
     this.state = 'PLAYING';
     this.loadLevel(0);
   }
@@ -2812,7 +2124,7 @@ class Game {
           } else {
             this.player.reset();
             this.player.invincibleTimer = 90;
-            this.renderer3D.snapCamera(this.player);
+            this.hat = null;
             this.camX = Math.max(0, Math.min(this.level.width - this.width, this.player.x - this.width * 0.38));
             this.camY = Math.max(0, Math.min(this.level.height - this.height, this.player.y - this.height * 0.55));
           }
@@ -2822,7 +2134,69 @@ class Game {
 
         if (this.player.isDead) {
           this.particles.emit(this.player.x + this.player.w / 2, this.player.y + this.player.h / 2, '#ff0055', 28, 4.5, 3.5, 50);
-          this.deathTimer = 45; // ~0.75s de pausa para mostrar muerte limpia
+          this.deathTimer = 45;
+          if (this.hat) {
+            this.hat = null;
+            this.player.hasHat = true;
+          }
+        }
+
+        // LÓGICA DEL SOMBRERO BUMERÁN
+        if (this.hat) {
+          this.hat.rot += 0.35;
+          this.hat.timer++;
+
+          if (this.hat.state === 'OUTBOUND') {
+            this.hat.x += this.hat.vx;
+            if (this.hat.timer >= this.hat.maxTimer) {
+              this.hat.state = 'RETURNING';
+            }
+          } else {
+            // RETURNING: vuelve hacia el sacerdote
+            const targetX = this.player.x + this.player.w / 2 - this.hat.w / 2;
+            const targetY = this.player.y + 10;
+            const dx = targetX - this.hat.x;
+            const dy = targetY - this.hat.y;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist < 26 || this.hat.timer > 120) {
+              // Sombrero recuperado
+              this.player.hasHat = true;
+              this.hat = null;
+              audio.playTone(760, 'sine', 0.1, 0.25);
+              this.particles.emit(this.player.x + this.player.w / 2, this.player.y + 8, '#ffe600', 10, 2.5, 2, 20);
+            } else {
+              const returnSpeed = 11;
+              this.hat.vx = (dx / dist) * returnSpeed;
+              this.hat.vy = (dy / dist) * returnSpeed;
+              this.hat.x += this.hat.vx;
+              this.hat.y += this.hat.vy;
+            }
+          }
+
+          if (this.hat) {
+            // Estela dorada sagrada
+            if (Math.random() < 0.6) {
+              this.particles.emit(this.hat.x + this.hat.w / 2, this.hat.y + this.hat.h / 2, '#ffe600', 2, 1.2, 2, 15);
+            }
+
+            // Colisión con enemigos
+            for (const enemy of this.level.enemies) {
+              if (enemy.isDead) continue;
+              if (
+                this.hat.x < enemy.x + enemy.w &&
+                this.hat.x + this.hat.w > enemy.x &&
+                this.hat.y < enemy.y + enemy.h &&
+                this.hat.y + this.hat.h > enemy.y
+              ) {
+                enemy.isDead = true;
+                this.score += 250;
+                audio.playHatHit();
+                this.particles.emit(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#ffe600', 22, 4.5, 3.5, 45);
+                this.hat.state = 'RETURNING';
+              }
+            }
+          }
         }
 
         for (const enemy of this.level.enemies) {
@@ -2919,29 +2293,13 @@ class Game {
   }
 
   draw() {
-    if (this.renderMode === '3D') {
-      this.renderer3D.render(this.player, this.level, this.particles, this.projectiles);
-    } else {
-      this.draw2D();
-    }
+    this.draw2D();
 
-    if (this.state === 'START' || this.state === 'LEVEL_WIN' || this.state === 'GAME_OVER' || this.state === 'VICTORY') {
-      if (this.renderMode === '3D') {
-        this.ctx.clearRect(0, 0, this.width, this.height);
-        this.canvas2D.style.display = 'block';
-      }
-      this.drawHUD();
-      if (this.state === 'START') this.drawStartScreen();
-      if (this.state === 'LEVEL_WIN') this.drawLevelWinBanner();
-      if (this.state === 'GAME_OVER') this.drawGameOverScreen();
-      if (this.state === 'VICTORY') this.drawVictoryScreen();
-    } else {
-      if (this.renderMode === '3D') {
-        this.canvas2D.style.display = 'none';
-      } else {
-        this.drawHUD();
-      }
-    }
+    this.drawHUD();
+    if (this.state === 'START') this.drawStartScreen();
+    if (this.state === 'LEVEL_WIN') this.drawLevelWinBanner();
+    if (this.state === 'GAME_OVER') this.drawGameOverScreen();
+    if (this.state === 'VICTORY') this.drawVictoryScreen();
   }
 
   draw2D() {
@@ -3096,19 +2454,53 @@ class Game {
       this.ctx.restore();
     }
 
+    // Dibujar sombrero arrojado en vuelo (bumerán)
+    if (this.hat) {
+      const hx = Math.round(this.hat.x - camX);
+      const hy = Math.round(this.hat.y - camY);
+      this.ctx.save();
+      this.ctx.translate(hx + this.hat.w / 2, hy + this.hat.h / 2);
+      this.ctx.rotate(this.hat.rot);
+      this.ctx.shadowColor = '#ffe600';
+      this.ctx.shadowBlur = 16;
+
+      // Ala exterior del saturno
+      this.ctx.fillStyle = '#0f172a';
+      this.ctx.strokeStyle = '#ffe600';
+      this.ctx.lineWidth = 1.8;
+      this.ctx.beginPath();
+      this.ctx.ellipse(0, 0, 16, 6, 0, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.stroke();
+
+      // Copa del sombrero
+      this.ctx.fillStyle = '#1e293b';
+      this.ctx.beginPath();
+      this.ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      // Centro bendito
+      this.ctx.fillStyle = '#ffe600';
+      this.ctx.beginPath();
+      this.ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      this.ctx.restore();
+    }
+
     this.player.draw(this.ctx, camX, camY);
     this.particles.draw(this.ctx, camX, camY);
   }
 
   drawParallaxBackground() {
-    // Cielo azul medianoche limpio y luminoso (Cero oscuridad deprimente)
+    // Fondo de alta visibilidad: degradado medianoche limpio
     const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
     grad.addColorStop(0, '#151d3b');
     grad.addColorStop(1, '#241a4a');
     this.ctx.fillStyle = grad;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // Siluetas lejanas limpias, SIN franjas horizontales que confundan
+    // Siluetas lejanas limpias, sin interferencias
     this.ctx.save();
     this.ctx.fillStyle = '#11172e';
     const bOffset = (this.camX * 0.12) % 240;
@@ -3132,10 +2524,10 @@ class Game {
     this.ctx.font = 'bold 15px "Segoe UI", sans-serif';
 
     this.ctx.fillStyle = 'rgba(9, 8, 20, 0.75)';
-    this.ctx.fillRect(15, 12, 420, 40);
+    this.ctx.fillRect(15, 12, 450, 40);
     this.ctx.strokeStyle = '#00f0ff';
     this.ctx.lineWidth = 1.5;
-    this.ctx.strokeRect(15, 12, 420, 40);
+    this.ctx.strokeRect(15, 12, 450, 40);
 
     this.ctx.fillStyle = '#ff0055';
     this.ctx.shadowColor = '#ff0055';
@@ -3157,11 +2549,21 @@ class Game {
 
     this.ctx.fillStyle = '#ffe600';
     this.ctx.shadowColor = '#ffe600';
-    this.ctx.fillText(`NIVEL ${this.currentLevelIdx + 1}/5`, 270, 37);
+    this.ctx.fillText(`SECTOR ${this.currentLevelIdx + 1}/5`, 265, 37);
 
-    this.ctx.fillStyle = this.renderMode === '3D' ? '#ffe600' : '#00f0ff';
-    this.ctx.shadowColor = this.ctx.fillStyle;
-    this.ctx.fillText(`[${this.renderMode === '3D' ? '2.5D' : '2D'}]`, 370, 37);
+    // Estado del sombrero para el HUD si estamos en Fase 2+
+    if (this.currentLevelIdx >= 1) {
+      this.ctx.font = 'bold 12px "Segoe UI", sans-serif';
+      if (this.player.hasHat && !this.hat) {
+        this.ctx.fillStyle = '#ffe600';
+        this.ctx.shadowColor = '#ffe600';
+        this.ctx.fillText('[J/F/👒: SOMBRERO]', 370, 37);
+      } else {
+        this.ctx.fillStyle = '#a4b3d6';
+        this.ctx.shadowColor = '#a4b3d6';
+        this.ctx.fillText('[👒 EN VUELO]', 370, 37);
+      }
+    }
 
     this.ctx.fillStyle = audio.muted ? '#ff0055' : '#00ff66';
     this.ctx.shadowColor = audio.muted ? '#ff0055' : '#00ff66';
@@ -3181,36 +2583,41 @@ class Game {
     this.ctx.fillStyle = '#00f0ff';
     this.ctx.shadowColor = '#00f0ff';
     this.ctx.shadowBlur = 25;
-    this.ctx.fillText('CYBER SURGE', this.width / 2, 170);
+    this.ctx.fillText('CYBER SURGE', this.width / 2, 160);
 
     this.ctx.font = '700 22px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#ff0055';
     this.ctx.shadowColor = '#ff0055';
     this.ctx.shadowBlur = 15;
-    this.ctx.fillText('PROTOCOL ZERO: 5 SECTORES', this.width / 2, 215);
+    this.ctx.fillText('MISIÓN SACERDOTAL: PROTOCOL ZERO', this.width / 2, 205);
 
     this.ctx.font = '16px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#e2e8f0';
     this.ctx.shadowBlur = 0;
-    this.ctx.fillText('Supera los 5 niveles, destruye drones pisándolos y alcanza el portal.', this.width / 2, 290);
-    this.ctx.fillText('Nivel 1: Drones de patrulla | Nivel 2: Acid Foundry | Nivel 3: Láseres & Torretas', this.width / 2, 320);
-    this.ctx.fillText('Nivel 4: Avispones & Jump Pads | Nivel 5: Apex Sentinels', this.width / 2, 345);
+    this.ctx.fillText('Supera los 5 sectores y purga los drones pisándolos.', this.width / 2, 265);
+    this.ctx.fillText('Sector 1: Drones de patrulla | Sector 2: Acid Foundry (¡Desbloquea Sombrero Bumerán!)', this.width / 2, 295);
+    this.ctx.fillText('Sector 3: Láseres & Torretas | Sector 4: Avispones | Sector 5: Apex Sentinels', this.width / 2, 325);
 
-    this.ctx.font = '14px "Segoe UI", sans-serif';
+    this.ctx.font = 'bold 15px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#ffe600';
     this.ctx.shadowColor = '#ffe600';
-    this.ctx.shadowBlur = 6;
+    this.ctx.shadowBlur = 8;
+    this.ctx.fillText('👒 HABILIDAD SAGRADA (FASE 2+): Pulsa [ J ], [ F ] o [ 👒 ] para lanzar tu sombrero bumerán', this.width / 2, 365);
+
+    this.ctx.font = '14px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#a4b3d6';
+    this.ctx.shadowBlur = 0;
     const modeText = this.controlsInverted
       ? 'MANDOS TÁCTILES: [ ▲ SALTO (IZQ) ]  [ ◀ ▶ MOVIMIENTO (DER) ]  (PULSA ⇄ O "I")'
       : 'MANDOS TÁCTILES: [ ◀ ▶ MOVIMIENTO (IZQ) ]  [ ▲ SALTO (DER) ]  (PULSA ⇄ O "I")';
-    this.ctx.fillText(modeText, this.width / 2, 385);
+    this.ctx.fillText(modeText, this.width / 2, 405);
 
     const pulse = Math.abs(Math.sin(Date.now() * 0.004));
     this.ctx.font = 'bold 20px "Segoe UI", sans-serif';
     this.ctx.fillStyle = `rgba(0, 240, 255, ${0.4 + pulse * 0.6})`;
     this.ctx.shadowColor = '#00f0ff';
     this.ctx.shadowBlur = 12;
-    this.ctx.fillText('>>> PRESIONA CUALQUIER TECLA O HAZ CLIC PARA INICIAR <<<', this.width / 2, 435);
+    this.ctx.fillText('>>> PRESIONA CUALQUIER TECLA O HAZ CLIC PARA COMENZAR <<<', this.width / 2, 455);
 
     this.ctx.restore();
   }
@@ -3274,7 +2681,7 @@ class Game {
     this.ctx.fillStyle = '#00f0ff';
     this.ctx.shadowColor = '#00f0ff';
     this.ctx.shadowBlur = 10;
-    this.ctx.fillText('Has liberado todos los sectores de la red central.', this.width / 2, 255);
+    this.ctx.fillText('El Sacerdote ha purificado todos los sectores de la red central.', this.width / 2, 255);
 
     this.ctx.font = 'bold 24px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#ffe600';
