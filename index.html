@@ -902,13 +902,13 @@ class Player {
       return;
     }
 
-    // Efecto de estela cibernética (dash / velocidad alta)
+    // Efecto de aura / bendición protectora (dash o velocidad alta)
     for (const img of this.afterImages) {
       ctx.save();
       ctx.globalAlpha = img.alpha * 0.45;
-      ctx.fillStyle = '#00f0ff';
-      ctx.shadowColor = '#00f0ff';
-      ctx.shadowBlur = 8;
+      ctx.fillStyle = '#ffe600';
+      ctx.shadowColor = '#ffe600';
+      ctx.shadowBlur = 10;
       ctx.fillRect(img.x - camX, img.y - camY, this.w, this.h);
       ctx.restore();
     }
@@ -924,7 +924,7 @@ class Player {
       ctx.translate(px, py);
     }
 
-    // Dynamic animation factors
+    // Factores dinámicos de animación
     const isJumping = !this.grounded;
     const isAscending = isJumping && this.vy < 0;
     const isFalling = isJumping && this.vy >= 0;
@@ -932,218 +932,232 @@ class Player {
     const runCycle = this.runAnimTimer;
     const timeSec = Date.now() * 0.005;
 
-    // Resplandor cian para destacar al héroe sobre cualquier fondo
-    ctx.shadowColor = '#00f0ff';
-    ctx.shadowBlur = 14;
-
-    // --- 1. BUFANDA DE PLASMA NEÓN DINÁMICA (Detrás del torso) ---
-    ctx.save();
-    ctx.fillStyle = '#ff0055';
-    ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 16;
-    if (isAscending) {
-      // Al subir en el salto, la bufanda ondea fuertemente hacia abajo
-      ctx.beginPath();
-      ctx.moveTo(3, 14);
-      ctx.quadraticCurveTo(-10, 22 + Math.sin(timeSec * 3) * 3, -18, 30);
-      ctx.lineTo(-14, 34);
-      ctx.quadraticCurveTo(-6, 24, 6, 17);
-      ctx.closePath();
-      ctx.fill();
-    } else if (isFalling) {
-      // En caída, la bufanda sube por el viento
-      ctx.beginPath();
-      ctx.moveTo(3, 14);
-      ctx.quadraticCurveTo(-12, 6 + Math.sin(timeSec * 3) * 3, -20, 2);
-      ctx.lineTo(-16, -2);
-      ctx.quadraticCurveTo(-6, 8, 6, 15);
-      ctx.closePath();
-      ctx.fill();
-    } else if (isRunning) {
-      // Al correr, ondea horizontalmente hacia atrás
-      const scarfWave1 = Math.sin(runCycle * 2) * 5;
-      const scarfWave2 = Math.cos(runCycle * 2) * 6;
-      ctx.beginPath();
-      ctx.moveTo(4, 13);
-      ctx.quadraticCurveTo(-8, 12 + scarfWave1, -18, 14 + scarfWave2);
-      ctx.lineTo(-17, 19 + scarfWave2);
-      ctx.quadraticCurveTo(-7, 17 + scarfWave1, 6, 16);
-      ctx.closePath();
-      ctx.fill();
-    } else {
-      // En reposo: suave vaivén
-      const breath = Math.sin(timeSec * 1.5) * 3;
-      ctx.fillRect(-6, 13 + breath, 9, 4);
-      ctx.fillRect(-12, 15 + breath, 8, 3);
-    }
-    ctx.restore();
-
-    // --- 2. PIERNAS CON ARTICULACIONES Y ZAPATILLAS CIBER (IK-Style) ---
-    ctx.save();
-    ctx.fillStyle = '#1e3a8a'; // Pantalón exo-traje azul cobalto oscuro
-    if (isAscending) {
-      // Pose de salto ascendente: pierna delantera flexionada hacia arriba lista para aterrizar, trasera extendida
-      // Pierna trasera
-      ctx.fillRect(4, 26, 6, 10);
-      ctx.fillRect(3, 33, 6, 7);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(3, 31, 6, 2); // Rodillera neón
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(2, 38, 8, 4); // Bota blanca
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(2, 41, 8, 2); // Suela propulsora
-
-      // Pierna delantera encogida
-      ctx.fillStyle = '#2563eb';
-      ctx.fillRect(15, 24, 7, 8);
-      ctx.fillRect(17, 29, 6, 6);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(16, 28, 7, 2); // Rodillera
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(18, 33, 8, 4);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(18, 36, 8, 2);
-    } else if (isFalling) {
-      // Pose de caída: piernas preparadas para el impacto
-      ctx.fillStyle = '#1e3a8a';
-      ctx.fillRect(5, 27, 6, 12);
-      ctx.fillRect(15, 27, 6, 12);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(5, 33, 6, 2);
-      ctx.fillRect(15, 33, 6, 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(4, 38, 8, 4);
-      ctx.fillRect(15, 38, 8, 4);
-      // Luces propulsoras de frenado en los pies
-      ctx.fillStyle = '#ffe600';
-      ctx.shadowColor = '#ffe600';
-      ctx.shadowBlur = 8;
-      ctx.fillRect(4, 41, 8, 2);
-      ctx.fillRect(15, 41, 8, 2);
-    } else if (isRunning) {
-      // Animación de carrera fluida con rodillas articuladas
-      const leg1Swing = Math.sin(runCycle) * 7;
-      const leg2Swing = -leg1Swing;
-      // Pierna 1
-      ctx.fillStyle = '#1e3a8a';
-      ctx.fillRect(5 + leg1Swing, 27, 6, 9);
-      ctx.fillRect(5 + leg1Swing * 1.2, 34, 6, 7);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(5 + leg1Swing, 33, 6, 2); // Rodillera neón
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(4 + leg1Swing * 1.3, 39, 8, 4);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(4 + leg1Swing * 1.3, 41, 8, 2);
-
-      // Pierna 2
-      ctx.fillStyle = '#2563eb';
-      ctx.fillRect(15 + leg2Swing, 27, 6, 9);
-      ctx.fillRect(15 + leg2Swing * 1.2, 34, 6, 7);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(15 + leg2Swing, 33, 6, 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(14 + leg2Swing * 1.3, 39, 8, 4);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(14 + leg2Swing * 1.3, 41, 8, 2);
-    } else {
-      // Reposo (idle) con micro-respiración
-      const idleBob = Math.sin(timeSec * 2) * 1;
-      ctx.fillStyle = '#1e3a8a';
-      ctx.fillRect(5, 27 + idleBob, 6, 13);
-      ctx.fillRect(15, 27 + idleBob, 6, 13);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(5, 33 + idleBob, 6, 2);
-      ctx.fillRect(15, 33 + idleBob, 6, 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(4, 39 + idleBob, 8, 4);
-      ctx.fillRect(14, 39 + idleBob, 8, 4);
-    }
-    ctx.restore();
-
-    // --- 3. TORSO, ARMADURA CIBERNÉTICA Y REACTOR DE PECHO ---
-    const torsoY = isRunning ? 12 + Math.abs(Math.sin(runCycle)) * 1.5 : (isJumping ? 10 : 12);
-    ctx.save();
-    // Armazón base blindado oscuro
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(3, torsoY, 20, 16);
-
-    // Placa pectoral blanca pulida
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(4, torsoY + 1, 18, 14);
-
-    // Ranuras y detalles mecánicos
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(6, torsoY + 3, 4, 10);
-    ctx.fillRect(16, torsoY + 3, 4, 10);
-
-    // Reactor de energía central (palpita)
-    const reactorGlow = Math.sin(timeSec * 4) * 0.3 + 0.7;
-    ctx.fillStyle = '#00f0ff';
-    ctx.shadowColor = '#00f0ff';
-    ctx.shadowBlur = 10 * reactorGlow;
-    ctx.fillRect(11, torsoY + 4, 5, 7);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(12, torsoY + 6, 3, 3);
-
-    // Cinturón táctil con celdas de poder doradas
-    ctx.fillStyle = '#ffe600';
-    ctx.shadowColor = '#ffe600';
-    ctx.shadowBlur = 6;
-    ctx.fillRect(5, torsoY + 13, 3, 3);
-    ctx.fillRect(11, torsoY + 13, 4, 3);
-    ctx.fillRect(18, torsoY + 13, 3, 3);
-    ctx.restore();
-
-    // --- 4. BRAZOS CON DETALLE Y HOMBRERAS ---
-    ctx.save();
-    const armBob = isRunning ? Math.sin(runCycle) * 5 : (isAscending ? -4 : (isFalling ? 3 : 0));
-    // Hombrera ciber
-    ctx.fillStyle = '#f8fafc';
-    ctx.strokeStyle = '#00f0ff';
-    ctx.lineWidth = 1.2;
-    ctx.fillRect(7 - armBob * 0.3, torsoY + 1, 7, 5);
-    ctx.strokeRect(7 - armBob * 0.3, torsoY + 1, 7, 5);
-
-    // Brazo / Guantelete
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(8 - armBob * 0.5, torsoY + 6, 5, 7);
-    // Guantelete blanco y pulsera de energía
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(7 - armBob * 0.6, torsoY + 11, 7, 5);
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillRect(7 - armBob * 0.6, torsoY + 13, 7, 2);
-    ctx.restore();
-
-    // --- 5. CASCO CIBER, ANTENA Y VISOR HOLOGRÁFICO ---
-    const headY = torsoY - 11;
-    ctx.save();
-    // Casco aerodinámico blanco con bordes cian
-    ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(4, headY, 18, 12);
-    ctx.strokeStyle = '#00f0ff';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(4, headY, 18, 12);
-
-    // Antena / Cresta superior
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillRect(6, headY - 3, 4, 4);
-    ctx.fillStyle = '#ff0055';
-    ctx.fillRect(7, headY - 5, 2, 3); // LED de señal
-
-    // Visor dorado ultra reflectante con HUD interno
-    ctx.fillStyle = '#ffe600';
+    // Resplandor áureo sagrado de contraste
     ctx.shadowColor = '#ffe600';
     ctx.shadowBlur = 12;
-    ctx.fillRect(11, headY + 3, 12, 6);
-    // Reflejo blanco en el visor
+
+    // --- 1. CAPA / MANTO NEGRO CON FORRO DE ORO SACRO (Detrás) ---
+    ctx.save();
+    ctx.fillStyle = '#0f172a'; // Sotana/manto exterior negro noche
+    ctx.shadowColor = '#000000';
+    ctx.shadowBlur = 8;
+    if (isAscending) {
+      // Al saltar hacia arriba, el manto ondea hacia abajo y hacia atrás
+      ctx.beginPath();
+      ctx.moveTo(6, 16);
+      ctx.quadraticCurveTo(-8, 25 + Math.sin(timeSec * 3) * 3, -16, 36);
+      ctx.lineTo(-11, 40);
+      ctx.quadraticCurveTo(-4, 28, 8, 22);
+      ctx.closePath();
+      ctx.fill();
+      // Borde dorado
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else if (isFalling) {
+      // Al caer, el manto se infla hacia arriba por la resistencia del aire
+      ctx.beginPath();
+      ctx.moveTo(6, 16);
+      ctx.quadraticCurveTo(-10, 8 + Math.sin(timeSec * 3) * 3, -18, 4);
+      ctx.lineTo(-14, 0);
+      ctx.quadraticCurveTo(-4, 10, 8, 20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else if (isRunning) {
+      // Al correr, el manto vuela elegantemente
+      const capeWave1 = Math.sin(runCycle * 2) * 5;
+      const capeWave2 = Math.cos(runCycle * 2) * 6;
+      ctx.beginPath();
+      ctx.moveTo(6, 16);
+      ctx.quadraticCurveTo(-8, 16 + capeWave1, -16, 20 + capeWave2);
+      ctx.lineTo(-14, 28 + capeWave2);
+      ctx.quadraticCurveTo(-6, 22 + capeWave1, 8, 24);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    } else {
+      // En reposo (idle)
+      const breath = Math.sin(timeSec * 1.5) * 2;
+      ctx.fillRect(-4, 16 + breath, 7, 18);
+      ctx.fillStyle = '#ffe600';
+      ctx.fillRect(-5, 32 + breath, 8, 2);
+    }
+    ctx.restore();
+
+    // --- 2. PIERNAS, FALDÓN DE LA SOTANA Y ZAPATOS SACERDOTALES ---
+    ctx.save();
+    // Sotana negra talar
+    ctx.fillStyle = '#0f172a';
+    if (isAscending) {
+      // Pierna trasera estirada, delantera recogida
+      ctx.fillRect(4, 25, 7, 12);
+      ctx.fillRect(15, 23, 7, 9);
+      // Zapatos negros de cuero con hebilla dorada
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(3, 37, 8, 5);
+      ctx.fillRect(16, 32, 8, 5);
+      ctx.fillStyle = '#ffe600';
+      ctx.fillRect(5, 38, 3, 2);
+      ctx.fillRect(18, 33, 3, 2);
+    } else if (isFalling) {
+      // Piernas amortiguando
+      ctx.fillRect(4, 26, 7, 12);
+      ctx.fillRect(15, 26, 7, 12);
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(3, 38, 8, 4);
+      ctx.fillRect(15, 38, 8, 4);
+      ctx.fillStyle = '#ffe600';
+      ctx.fillRect(5, 39, 3, 2);
+      ctx.fillRect(17, 39, 3, 2);
+    } else if (isRunning) {
+      // Zancada sacerdotal fluida
+      const stepSwing = Math.sin(runCycle) * 6;
+      ctx.fillRect(4 + stepSwing, 26, 7, 12);
+      ctx.fillRect(15 - stepSwing, 26, 7, 12);
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(3 + stepSwing, 38, 8, 4);
+      ctx.fillRect(14 - stepSwing, 38, 8, 4);
+      ctx.fillStyle = '#ffe600';
+      ctx.fillRect(5 + stepSwing, 39, 3, 2);
+      ctx.fillRect(16 - stepSwing, 39, 3, 2);
+    } else {
+      // Reposo
+      const idleBob = Math.sin(timeSec * 2) * 1;
+      ctx.fillRect(4, 26 + idleBob, 7, 13);
+      ctx.fillRect(15, 26 + idleBob, 7, 13);
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(3, 39 + idleBob, 8, 3);
+      ctx.fillRect(14, 39 + idleBob, 8, 3);
+      ctx.fillStyle = '#ffe600';
+      ctx.fillRect(5, 40 + idleBob, 3, 2);
+      ctx.fillRect(16, 40 + idleBob, 3, 2);
+    }
+    ctx.restore();
+
+    // --- 3. CUERPO: SOTANA NEGRA, BOTONADURA CENTRAL Y ALZACUELLOS BLANCO ---
+    const torsoY = isRunning ? 13 + Math.abs(Math.sin(runCycle)) * 1.5 : (isJumping ? 11 : 13);
+    ctx.save();
+    // Cuerpo de la sotana negra
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(3, torsoY, 20, 15);
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(3, torsoY, 20, 15);
+
+    // Botonadura frontal vertical de la sotana
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(12, torsoY + 2, 2, 13);
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(13, headY + 4, 7, 2);
-    // Pupila / Escáner cian dinámico
-    ctx.fillStyle = '#00f0ff';
-    ctx.shadowColor = '#00f0ff';
+    for (let b = 0; b < 4; b++) {
+      ctx.fillRect(12, torsoY + 3 + b * 3, 2, 1);
+    }
+
+    // Faja / Cíngulo negro con caída
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(2, torsoY + 11, 22, 3);
+    ctx.fillStyle = '#ffe600'; // Detalle dorado del cíngulo
+    ctx.fillRect(10, torsoY + 11, 6, 3);
+    ctx.fillRect(11, torsoY + 14, 4, 6);
+
+    // Pectoral / Cruz de oro bendita en el pecho
+    ctx.fillStyle = '#ffe600';
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 8;
+    ctx.fillRect(7, torsoY + 4, 3, 6);
+    ctx.fillRect(5, torsoY + 5, 7, 2);
+    ctx.restore();
+
+    // Cuello negro con clériman / ALZACUELLOS blanco característico
+    ctx.save();
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(6, torsoY - 2, 14, 4);
+    // Alzacuellos blanco inconfundible
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ffffff';
     ctx.shadowBlur = 6;
-    const scannerX = 14 + Math.sin(timeSec * 3) * 3;
-    ctx.fillRect(Math.min(20, Math.max(12, scannerX)), headY + 5, 3, 3);
+    ctx.fillRect(10, torsoY - 2, 6, 3);
+    ctx.restore();
+
+    // --- 4. BRAZOS CON MANGA ANCHA Y MANOS ---
+    ctx.save();
+    const armSwing = isRunning ? Math.sin(runCycle) * 5 : (isAscending ? -4 : (isFalling ? 3 : 0));
+    // Manga negra
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(6 - armSwing * 0.4, torsoY + 1, 6, 12);
+    // Puño blanco de la camisa
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(6 - armSwing * 0.4, torsoY + 11, 6, 2);
+    // Mano color piel
+    ctx.fillStyle = '#fbcfe8';
+    ctx.fillRect(7 - armSwing * 0.4, torsoY + 13, 5, 4);
+    ctx.restore();
+
+    // --- 5. CABEZA, RASGOS FACIALES Y GAFAS REDONDAS (Fiel a la foto) ---
+    const headY = torsoY - 14;
+    ctx.save();
+
+    // Tono de piel sonrosado/claro realista
+    ctx.fillStyle = '#fbeee6';
+    // Cráneo calvo con frente ancha y despejada
+    ctx.beginPath();
+    ctx.ellipse(13, headY + 6, 9, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cabello lateral oscuro (calvicie superior pronunciada)
+    ctx.fillStyle = '#262626';
+    // Mechones laterales sienes y coronilla baja
+    ctx.beginPath();
+    ctx.arc(6, headY + 7, 4, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(20, headY + 7, 4, Math.PI * 1.5, Math.PI * 0.5);
+    ctx.fill();
+
+    // Cejas oscuras finas
+    ctx.fillStyle = '#404040';
+    ctx.fillRect(9, headY + 3, 4, 1);
+    ctx.fillRect(15, headY + 3, 4, 1);
+
+    // GAFAS REDONDAS METÁLICAS CON PUENTE (Clave de la foto)
+    ctx.strokeStyle = '#94a3b8'; // Montura plateada
+    ctx.lineWidth = 1.3;
+    // Lente izquierda
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.beginPath();
+    ctx.arc(10, headY + 6, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Lente derecha
+    ctx.beginPath();
+    ctx.arc(16, headY + 6, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Puente de las gafas
+    ctx.beginPath();
+    ctx.moveTo(13, headY + 6);
+    ctx.lineTo(13, headY + 6);
+    ctx.stroke();
+
+    // Ojos detrás de los cristales
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(9, headY + 5.5, 2, 2);
+    ctx.fillRect(15, headY + 5.5, 2, 2);
+
+    // Nariz y boca serena
+    ctx.fillStyle = '#f4c7ab';
+    ctx.fillRect(12, headY + 8, 2, 3); // Nariz
+    ctx.fillStyle = '#c2410c';
+    ctx.fillRect(11, headY + 12, 4, 1); // Labios
+
+    // Oreja visible
+    ctx.fillStyle = '#fbcfe8';
+    ctx.fillRect(4, headY + 5, 2, 4);
+
     ctx.restore();
 
     ctx.restore();
@@ -1982,99 +1996,140 @@ class ThreeRenderer {
   createPlayerMesh() {
     this.playerGroup = new THREE.Group();
 
-    // Materiales del héroe con alto brillo y contraste
-    const matArmor = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00f0ff, emissiveIntensity: 0.35, roughness: 0.2 });
-    const matVisor = new THREE.MeshStandardMaterial({ color: 0xffe600, emissive: 0xffe600, emissiveIntensity: 1.6 });
-    const matScarf = new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0xff0055, emissiveIntensity: 1.5 });
-    const matLimb = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.3 });
-    const matBoot = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
-    const matGlowCyan = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    const matShoulder = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.2 });
+    // Materiales del Sacerdote con alto contraste y fidelidad histórica
+    const matCassock = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.1 });
+    const matSkin = new THREE.MeshStandardMaterial({ color: 0xfbeee6, roughness: 0.5 });
+    const matHair = new THREE.MeshStandardMaterial({ color: 0x262626, roughness: 0.8 });
+    const matCollar = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const matGoldCross = new THREE.MeshStandardMaterial({ color: 0xffe600, emissive: 0xffe600, emissiveIntensity: 0.8, roughness: 0.2 });
+    const matShoe = new THREE.MeshStandardMaterial({ color: 0x05050d, roughness: 0.3 });
+    const matGlasses = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.1, metalness: 0.9 });
+    const matGlassLens = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 });
+    const matCape = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 });
 
-    // Torso articulado blanco reflectante
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(20, 18, 16), matArmor);
+    // Torso: Sotana negra con caída sacerdotal
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(20, 18, 16), matCassock);
     torso.position.y = 20;
     torso.castShadow = true;
     this.playerGroup.add(torso);
     this.playerTorso = torso;
 
-    // Reactor central en el pecho
-    const reactor = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 2, 8), matGlowCyan);
-    reactor.rotation.x = Math.PI / 2;
-    reactor.position.set(0, 20, 8.5);
-    this.playerGroup.add(reactor);
+    // Cruz pectoral de oro bendito
+    const crossV = new THREE.Mesh(new THREE.BoxGeometry(2.5, 7, 1), matGoldCross);
+    crossV.position.set(0, 19, 8.6);
+    const crossH = new THREE.Mesh(new THREE.BoxGeometry(6, 2.5, 1), matGoldCross);
+    crossH.position.set(0, 20.5, 8.6);
+    this.playerGroup.add(crossV);
+    this.playerGroup.add(crossH);
 
-    // Cabeza
-    const head = new THREE.Mesh(new THREE.BoxGeometry(16, 12, 14), matArmor);
-    head.position.y = 34;
+    // Cuello negro y Alzacuellos blanco clériman
+    const neck = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 10), matCassock);
+    neck.position.y = 29;
+    this.playerGroup.add(neck);
+    const clericalCollar = new THREE.Mesh(new THREE.BoxGeometry(6, 3, 1), matCollar);
+    clericalCollar.position.set(0, 29, 5.2);
+    this.playerGroup.add(clericalCollar);
+
+    // Cabeza: Cráneo calvo con frente ancha despejada
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 36, 0);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(8.5, 16, 16), matSkin);
+    head.scale.set(1, 1.1, 1);
     head.castShadow = true;
-    this.playerGroup.add(head);
+    headGroup.add(head);
 
-    // Antena superior
-    const antenna = new THREE.Mesh(new THREE.BoxGeometry(2, 5, 2), matGlowCyan);
-    antenna.position.set(0, 42, -2);
-    this.playerGroup.add(antenna);
+    // Mechones de pelo laterales y coronilla baja oscura (calvicie del sacerdote)
+    const hairLeft = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 9), matHair);
+    hairLeft.position.set(-7.8, -1, -1);
+    const hairRight = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 9), matHair);
+    hairRight.position.set(7.8, -1, -1);
+    const hairBack = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 2), matHair);
+    hairBack.position.set(0, -1.5, -7.8);
+    headGroup.add(hairLeft);
+    headGroup.add(hairRight);
+    headGroup.add(hairBack);
 
-    // Visor dorado ultra brillante
-    const visor = new THREE.Mesh(new THREE.BoxGeometry(13, 5, 4), matVisor);
-    visor.position.set(0, 34, 7.8);
-    this.playerGroup.add(visor);
-    this.playerVisor = visor;
+    // Gafas redondas de montura fina y cristales reflectantes
+    const glassGroup = new THREE.Group();
+    glassGroup.position.set(0, 0.5, 7.8);
 
-    // Bufanda de plasma neón
-    const scarf = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 22), matScarf);
-    scarf.position.set(0, 26, -11);
-    this.playerGroup.add(scarf);
-    this.playerScarf = scarf;
+    const leftFrame = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.35, 8, 16), matGlasses);
+    leftFrame.position.x = -3.2;
+    const rightFrame = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.35, 8, 16), matGlasses);
+    rightFrame.position.x = 3.2;
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.5, 0.5), matGlasses);
 
-    // Brazos con hombreras
+    const leftLens = new THREE.Mesh(new THREE.CircleGeometry(2, 12), matGlassLens);
+    leftLens.position.x = -3.2;
+    const rightLens = new THREE.Mesh(new THREE.CircleGeometry(2, 12), matGlassLens);
+    rightLens.position.x = 3.2;
+
+    glassGroup.add(leftFrame);
+    glassGroup.add(rightFrame);
+    glassGroup.add(bridge);
+    glassGroup.add(leftLens);
+    glassGroup.add(rightLens);
+    headGroup.add(glassGroup);
+
+    this.playerGroup.add(headGroup);
+
+    // Manto sacerdotal ondeante (en lugar de bufanda)
+    const cape = new THREE.Mesh(new THREE.BoxGeometry(16, 6, 24), matCape);
+    cape.position.set(0, 24, -12);
+    this.playerGroup.add(cape);
+    this.playerScarf = cape;
+
+    // Brazos con mangas de sotana anchas y manos
     const leftArm = new THREE.Group();
     leftArm.position.set(-12, 26, 0);
-    const leftShoulder = new THREE.Mesh(new THREE.BoxGeometry(6, 6, 8), matShoulder);
-    const leftHand = new THREE.Mesh(new THREE.BoxGeometry(5, 12, 6), matArmor);
-    leftHand.position.y = -6;
-    leftArm.add(leftShoulder);
+    const leftSleeve = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 7), matCassock);
+    leftSleeve.position.y = -6;
+    const leftHand = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 5), matSkin);
+    leftHand.position.y = -13;
+    leftArm.add(leftSleeve);
     leftArm.add(leftHand);
     this.playerGroup.add(leftArm);
     this.leftArm = leftArm;
 
     const rightArm = new THREE.Group();
     rightArm.position.set(12, 26, 0);
-    const rightShoulder = new THREE.Mesh(new THREE.BoxGeometry(6, 6, 8), matShoulder);
-    const rightHand = new THREE.Mesh(new THREE.BoxGeometry(5, 12, 6), matArmor);
-    rightHand.position.y = -6;
-    rightArm.add(rightShoulder);
+    const rightSleeve = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 7), matCassock);
+    rightSleeve.position.y = -6;
+    const rightHand = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 5), matSkin);
+    rightHand.position.y = -13;
+    rightArm.add(rightSleeve);
     rightArm.add(rightHand);
     this.playerGroup.add(rightArm);
     this.rightArm = rightArm;
 
-    // Piernas articuladas con botas
+    // Piernas articuladas con faldón de sotana y zapatos negros de hebilla
     this.leftLegGroup = new THREE.Group();
     this.leftLegGroup.position.set(-5, 14, 0);
-    this.leftLeg = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 6), matLimb);
+    this.leftLeg = new THREE.Mesh(new THREE.BoxGeometry(6.5, 12, 6.5), matCassock);
     this.leftLeg.position.y = -5;
     this.leftLeg.castShadow = true;
-    const leftBoot = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 9), matBoot);
-    leftBoot.position.set(0, -10, 1.5);
-    const leftSole = new THREE.Mesh(new THREE.BoxGeometry(7, 1.5, 9), matGlowCyan);
-    leftSole.position.set(0, -12, 1.5);
+    const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 9), matShoe);
+    leftShoe.position.set(0, -10, 1.5);
+    const leftBuckle = new THREE.Mesh(new THREE.BoxGeometry(3, 1.5, 1), matGoldCross);
+    leftBuckle.position.set(0, -8.5, 6);
     this.leftLegGroup.add(this.leftLeg);
-    this.leftLegGroup.add(leftBoot);
-    this.leftLegGroup.add(leftSole);
+    this.leftLegGroup.add(leftShoe);
+    this.leftLegGroup.add(leftBuckle);
     this.playerGroup.add(this.leftLegGroup);
 
     this.rightLegGroup = new THREE.Group();
     this.rightLegGroup.position.set(5, 14, 0);
-    this.rightLeg = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 6), matLimb);
+    this.rightLeg = new THREE.Mesh(new THREE.BoxGeometry(6.5, 12, 6.5), matCassock);
     this.rightLeg.position.y = -5;
     this.rightLeg.castShadow = true;
-    const rightBoot = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 9), matBoot);
-    rightBoot.position.set(0, -10, 1.5);
-    const rightSole = new THREE.Mesh(new THREE.BoxGeometry(7, 1.5, 9), matGlowCyan);
-    rightSole.position.set(0, -12, 1.5);
+    const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 9), matShoe);
+    rightShoe.position.set(0, -10, 1.5);
+    const rightBuckle = new THREE.Mesh(new THREE.BoxGeometry(3, 1.5, 1), matGoldCross);
+    rightBuckle.position.set(0, -8.5, 6);
     this.rightLegGroup.add(this.rightLeg);
-    this.rightLegGroup.add(rightBoot);
-    this.rightLegGroup.add(rightSole);
+    this.rightLegGroup.add(rightShoe);
+    this.rightLegGroup.add(rightBuckle);
     this.playerGroup.add(this.rightLegGroup);
 
     this.scene.add(this.playerGroup);
