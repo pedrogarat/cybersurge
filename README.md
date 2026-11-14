@@ -37,6 +37,7 @@ Un juego de plataformas 2D retro-cyberpunk al estilo clásico de *Super Mario Br
 | **Moverse a la izquierda** | `A` o Flecha `←` | Botón táctil `◀` |
 | **Moverse a la derecha** | `D` o Flecha `→` | Botón táctil `▶` |
 | **Saltar** | `Espacio`, `W` o Flecha `↑` | Botón táctil `▲ SALTO` |
+| **Invertir Mandos (Zurdo/Diestro)** | Tecla `I` | Botón superior `⇄ MANDOS` |
 | **Silenciar / Activar Música y SFX** | `M` | Botón táctil `🔊 AUDIO` |
 | **Reiniciar Sector / Partida** | `R` | Botón táctil `🔄 REINICIAR` |
 

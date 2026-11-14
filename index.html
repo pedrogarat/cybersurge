@@ -124,6 +124,10 @@
       width: 100%;
       padding-bottom: 6px;
     }
+    /* Inversión de mandos: Salto a la izquierda, dirección a la derecha */
+    .mobile-bottom-bar.layout-inverted {
+      flex-direction: row-reverse;
+    }
     .touch-btn {
       pointer-events: auto;
       touch-action: none;
@@ -242,6 +246,7 @@
     <!-- Controles táctiles virtuales en pantalla -->
     <div id="mobile-controls">
       <div class="mobile-top-bar">
+        <button id="touch-layout" class="touch-btn touch-btn-small" title="Invertir posición de mandos">⇄ MANDOS: DIESTRO</button>
         <button id="touch-mute" class="touch-btn touch-btn-small">🔊 AUDIO</button>
         <button id="touch-restart" class="touch-btn touch-btn-small">🔄 REINICIAR</button>
       </div>
@@ -1537,6 +1542,11 @@ class Game {
         audio.toggleMute();
       }
 
+      // Invertir controles táctiles con I
+      if (e.code === 'KeyI') {
+        this.toggleControlLayout();
+      }
+
       // Iniciar juego desde pantalla de inicio
       if (this.state === 'START') {
         this.state = 'PLAYING';
@@ -1619,6 +1629,22 @@ class Game {
     const btnJump = document.getElementById('touch-jump');
     const btnMute = document.getElementById('touch-mute');
     const btnRestart = document.getElementById('touch-restart');
+    const btnLayout = document.getElementById('touch-layout');
+
+    // Cargar preferencia guardada de posición de teclas
+    this.controlsInverted = localStorage.getItem('cybersurge_controls_inverted') === 'true';
+    this.applyControlLayout();
+
+    if (btnLayout) {
+      const handleLayoutToggle = (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        audio.init();
+        this.toggleControlLayout();
+      };
+      btnLayout.addEventListener('touchstart', handleLayoutToggle, { passive: false });
+      btnLayout.addEventListener('click', handleLayoutToggle);
+    }
 
     bindTouch(btnLeft, () => {
       this.input.left = true;
@@ -1674,6 +1700,38 @@ class Game {
       };
       btnRestart.addEventListener('touchstart', triggerRestart, { passive: false });
       btnRestart.addEventListener('click', triggerRestart);
+    }
+  }
+
+  toggleControlLayout() {
+    this.controlsInverted = !this.controlsInverted;
+    localStorage.setItem('cybersurge_controls_inverted', this.controlsInverted);
+    this.applyControlLayout();
+    audio.playTone(660, 'sine', 0.08, 0.2);
+  }
+
+  applyControlLayout() {
+    const bottomBar = document.querySelector('.mobile-bottom-bar');
+    const btnLayout = document.getElementById('touch-layout');
+    
+    if (bottomBar) {
+      if (this.controlsInverted) {
+        bottomBar.classList.add('layout-inverted');
+      } else {
+        bottomBar.classList.remove('layout-inverted');
+      }
+    }
+
+    if (btnLayout) {
+      if (this.controlsInverted) {
+        btnLayout.innerText = '⇄ MANDOS: ZURDO (SALTO IZQ)';
+        btnLayout.style.borderColor = '#ffe600';
+        btnLayout.style.color = '#ffe600';
+      } else {
+        btnLayout.innerText = '⇄ MANDOS: DIESTRO (SALTO DER)';
+        btnLayout.style.borderColor = '#a4b3d6';
+        btnLayout.style.color = '#e2e8f0';
+      }
     }
   }
 
@@ -2136,13 +2194,23 @@ class Game {
     this.ctx.fillText('Nivel 1: Drones de patrulla | Nivel 2: Acid Foundry | Nivel 3: Láseres & Torretas', this.width / 2, 320);
     this.ctx.fillText('Nivel 4: Avispones & Jump Pads | Nivel 5: Apex Sentinels', this.width / 2, 345);
 
+    // Indicador de modo de controles
+    this.ctx.font = '14px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#ffe600';
+    this.ctx.shadowColor = '#ffe600';
+    this.ctx.shadowBlur = 6;
+    const modeText = this.controlsInverted
+      ? 'MANDOS TÁCTILES: [ ▲ SALTO (IZQ) ]  [ ◀ ▶ MOVIMIENTO (DER) ]  (PULSA ⇄ O "I")'
+      : 'MANDOS TÁCTILES: [ ◀ ▶ MOVIMIENTO (IZQ) ]  [ ▲ SALTO (DER) ]  (PULSA ⇄ O "I")';
+    this.ctx.fillText(modeText, this.width / 2, 385);
+
     // Pulsador "PRESIONA CUALQUIER TECLA"
     const pulse = Math.abs(Math.sin(Date.now() * 0.004));
     this.ctx.font = 'bold 20px "Segoe UI", sans-serif';
     this.ctx.fillStyle = `rgba(0, 240, 255, ${0.4 + pulse * 0.6})`;
     this.ctx.shadowColor = '#00f0ff';
     this.ctx.shadowBlur = 12;
-    this.ctx.fillText('>>> PRESIONA CUALQUIER TECLA O HAZ CLIC PARA INICIAR <<<', this.width / 2, 430);
+    this.ctx.fillText('>>> PRESIONA CUALQUIER TECLA O HAZ CLIC PARA INICIAR <<<', this.width / 2, 435);
 
     this.ctx.restore();
   }
