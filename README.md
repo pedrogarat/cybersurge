@@ -1,11 +1,22 @@
-# CYBER SURGE: PROTOCOL ZERO ⚡
+# CYBER SURGE: PROTOCOL ZERO ⚡ (2D & 2.5D DUAL ENGINE)
 
-Un juego de plataformas 2D retro-cyberpunk al estilo clásico de *Super Mario Bros*, diseñado para ejecutarse directamente en cualquier navegador web moderno sin dependencias externas.
+Un juego de plataformas retro-cyberpunk al estilo clásico de *Super Mario Bros*, diseñado con arquitectura híbrida para ser disfrutado tanto en **Modo 2D Retro Arcade** como en **Modo 2.5D Next-Gen WebGL (Three.js)** directamente en cualquier navegador web moderno.
 
+![2D & 2.5D](https://img.shields.io/badge/Engine-2D%20%26%202.5D%20WebGL-00f0ff?style=flat-square)
+![Three.js](https://img.shields.io/badge/Three.js-r128-ffe600?style=flat-square)
 ![HTML5 Canvas](https://img.shields.io/badge/HTML5-Canvas-00f0ff?style=flat-square)
-![Vanilla JS](https://img.shields.io/badge/JavaScript-Vanilla-ffe600?style=flat-square)
 ![Web Audio API](https://img.shields.io/badge/Web%20Audio%20API-Procedural-ff0055?style=flat-square)
-![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-00ff66?style=flat-square)
+![Mobile Friendly](https://img.shields.io/badge/Mobile-Touch%20Controls-00ff66?style=flat-square)
+
+---
+
+## 🚀 Selector de Modo al Entrar
+
+Al abrir el juego, se presenta un menú para elegir la experiencia de renderizado deseada:
+1. **👾 Modo 2D Retro**: Motor Canvas clásico procedural con líneas de escaneo CRT (*scanlines*), viñeta y estética synthwave arcade de los 90.
+2. **⚡ Modo 2.5D Next-Gen (Three.js)**: Gráficos 3D en tiempo real con WebGL, iluminación dinámica neón (cian, magenta, amarillo), proyección de sombras suaves (*soft shadows*), modelos poligonales 3D para el jugador y enemigos, y cámara cinemática que rastrea la acción con profundidad.
+
+> Puedes alternar entre 2D y 2.5D en cualquier instante durante la partida pulsando el botón superior **`[ 🎮 MODO ]`** o la tecla **`C`**.
 
 ---
 
@@ -37,6 +48,7 @@ Un juego de plataformas 2D retro-cyberpunk al estilo clásico de *Super Mario Br
 | **Moverse a la izquierda** | `A` o Flecha `←` | Botón táctil `◀` |
 | **Moverse a la derecha** | `D` o Flecha `→` | Botón táctil `▶` |
 | **Saltar** | `Espacio`, `W` o Flecha `↑` | Botón táctil `▲ SALTO` |
+| **Alternar Modo 2D / 2.5D 3D** | Tecla `C` | Botón superior `🎮 MODO` |
 | **Invertir Mandos (Zurdo/Diestro)** | Tecla `I` | Botón superior `⇄ MANDOS` |
 | **Silenciar / Activar Música y SFX** | `M` | Botón táctil `🔊 AUDIO` |
 | **Reiniciar Sector / Partida** | `R` | Botón táctil `🔄 REINICIAR` |

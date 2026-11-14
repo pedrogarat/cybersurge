@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>CYBER SURGE: PROTOCOL ZERO - 2D Platformer</title>
+  <title>CYBER SURGE: PROTOCOL ZERO - 2D & 2.5D Platformer</title>
+  <!-- Three.js para el motor 3D / 2.5D -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -59,7 +61,16 @@
       height: 100%;
       image-rendering: pixelated;
     }
-    /* CRT Scanline Overlay Effect */
+    #threeCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 2;
+    }
+    /* CRT Scanline Overlay Effect (Modo 2D) */
     .scanlines {
       position: absolute;
       top: 0;
@@ -70,7 +81,7 @@
       background-size: 100% 4px;
       pointer-events: none;
       z-index: 10;
-      opacity: 0.7;
+      opacity: 0.65;
     }
     .vignette {
       position: absolute;
@@ -97,6 +108,126 @@
     }
 
     /* =========================================
+       MODAL DE SELECCIÓN DE MODO (2D vs 2.5D)
+       ========================================= */
+    #mode-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 5, 14, 0.94);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .modal-title {
+      font-size: 38px;
+      font-weight: 900;
+      color: #00f0ff;
+      text-shadow: 0 0 25px rgba(0, 240, 255, 0.8);
+      margin-bottom: 6px;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    .modal-subtitle {
+      font-size: 15px;
+      color: #ff0055;
+      text-shadow: 0 0 10px rgba(255, 0, 85, 0.6);
+      font-weight: 700;
+      margin-bottom: 28px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .mode-cards {
+      display: flex;
+      gap: 24px;
+      max-width: 680px;
+      width: 100%;
+      justify-content: center;
+    }
+    .mode-card {
+      flex: 1;
+      max-width: 300px;
+      background: rgba(16, 12, 38, 0.85);
+      border: 2px solid #00f0ff;
+      border-radius: 12px;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+    }
+    .mode-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.6);
+      border-color: #ffffff;
+    }
+    .mode-card-3d {
+      border-color: #ffe600;
+      box-shadow: 0 0 20px rgba(255, 230, 0, 0.25);
+    }
+    .mode-card-3d:hover {
+      box-shadow: 0 0 35px rgba(255, 230, 0, 0.6);
+    }
+    .mode-badge {
+      position: absolute;
+      top: -12px;
+      right: 14px;
+      background: #ff0055;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.8);
+    }
+    .mode-icon {
+      font-size: 44px;
+      margin-bottom: 12px;
+    }
+    .mode-card-title {
+      font-size: 19px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+    .mode-desc {
+      font-size: 12px;
+      color: #a4b3d6;
+      line-height: 1.45;
+      margin-bottom: 18px;
+    }
+    .mode-start-btn {
+      width: 100%;
+      padding: 10px 0;
+      border: none;
+      border-radius: 6px;
+      background: #00f0ff;
+      color: #05050d;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.5);
+      transition: background 0.1s ease;
+    }
+    .mode-start-btn-3d {
+      background: #ffe600;
+      box-shadow: 0 0 14px rgba(255, 230, 0, 0.5);
+    }
+
+    /* =========================================
        CONTROLES TÁCTILES PARA MÓVIL (CYBER HUD)
        ========================================= */
     #mobile-controls {
@@ -106,7 +237,7 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 20;
+      z-index: 30;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -124,7 +255,7 @@
       width: 100%;
       padding-bottom: 6px;
     }
-    /* Inversión de mandos: Salto a la izquierda, dirección a la derecha */
+    /* Inversión de mandos (Salto izquierda, movimiento derecha) */
     .mobile-bottom-bar.layout-inverted {
       flex-direction: row-reverse;
     }
@@ -183,14 +314,13 @@
       transform: scale(0.92);
     }
 
-    /* Ocultar controles táctiles en pantallas grandes con ratón */
     @media (hover: hover) and (pointer: fine) and (min-width: 981px) {
       body:not(.touch-enabled) #mobile-controls {
         display: none;
       }
     }
 
-    /* Aviso de rotación en móvil vertical */
+    /* Aviso de rotación para móvil */
     #orientation-warning {
       display: none;
       position: fixed;
@@ -239,13 +369,40 @@
   </div>
 
   <div id="game-container">
+    <!-- Canvas 2D Retro -->
     <canvas id="gameCanvas" width="960" height="540"></canvas>
-    <div class="scanlines"></div>
+    
+    <!-- Canvas 3D WebGL (Three.js) -->
+    <canvas id="threeCanvas"></canvas>
+
+    <div class="scanlines" id="scanlinesOverlay"></div>
     <div class="vignette"></div>
+
+    <!-- Modal de Selección de Modo (2D Retro vs 2.5D) -->
+    <div id="mode-modal">
+      <div class="modal-title">CYBER SURGE</div>
+      <div class="modal-subtitle">PROTOCOL ZERO // SELECCIONA EL MODO</div>
+      <div class="mode-cards">
+        <div class="mode-card" id="btn-select-2d">
+          <div class="mode-icon">👾</div>
+          <div class="mode-card-title">2D RETRO</div>
+          <div class="mode-desc">Motor procedural Canvas clásico, scanlines CRT, estética synthwave 90s.</div>
+          <button class="mode-start-btn">JUGAR EN 2D</button>
+        </div>
+        <div class="mode-card mode-card-3d" id="btn-select-3d">
+          <div class="mode-badge">3D REAL</div>
+          <div class="mode-icon">⚡</div>
+          <div class="mode-card-title">2.5D NEXT-GEN</div>
+          <div class="mode-desc">WebGL Three.js, modelos 3D, iluminación volumétrica, sombras y cámara cinemática.</div>
+          <button class="mode-start-btn mode-start-btn-3d">JUGAR EN 2.5D</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Controles táctiles virtuales en pantalla -->
     <div id="mobile-controls">
       <div class="mobile-top-bar">
+        <button id="touch-switch-mode" class="touch-btn touch-btn-small" style="border-color:#00f0ff; color:#00f0ff;">🎮 MODO: 2D</button>
         <button id="touch-layout" class="touch-btn touch-btn-small" title="Invertir posición de mandos">⇄ MANDOS: DIESTRO</button>
         <button id="touch-mute" class="touch-btn touch-btn-small">🔊 AUDIO</button>
         <button id="touch-restart" class="touch-btn touch-btn-small">🔄 REINICIAR</button>
@@ -265,14 +422,15 @@
   <div id="instructions-bar">
     <div>Moverse: <span>A/D o Flechas</span></div>
     <div>Saltar: <span>Espacio / W / Arriba</span></div>
+    <div>Cambiar Modo 2D/3D: <span>Tecla C</span></div>
+    <div>Invertir Mandos: <span>Tecla I</span></div>
     <div>Silenciar: <span>M</span></div>
-    <div>Reiniciar: <span>R</span></div>
   </div>
 
 <script>
 /**
  * CYBER SURGE: PROTOCOL ZERO
- * 2D Platformer Engine en Canvas Vanilla con Audio Procedural
+ * Motor Híbrido: 2D Retro Canvas + 2.5D WebGL (Three.js) con Audio Procedural
  * Diseñado & Desarrollado por Antigravity
  */
 
@@ -285,16 +443,15 @@ class SoundEngine {
     this.muted = false;
     this.bgmTimer = null;
     this.currentStep = 0;
-    this.tempo = 120; // BPM base
+    this.tempo = 120;
     this.currentLevel = 1;
     this.masterGain = null;
     this.scales = {
-      // Diferentes escalas y tonalidades por nivel
-      1: { root: 220, type: 'pentatonic', notes: [0, 3, 5, 7, 10, 12, 15, 17] }, // Am pentatónica
-      2: { root: 146.83, type: 'dorian', notes: [0, 2, 3, 5, 7, 9, 10, 12] },    // D dorian
-      3: { root: 174.61, type: 'phrygian', notes: [0, 1, 3, 5, 7, 8, 10, 12] },  // F phrygian
-      4: { root: 164.81, type: 'aeolian', notes: [0, 2, 3, 5, 7, 8, 10, 12] },   // E aeolian
-      5: { root: 130.81, type: 'cyber_apex', notes: [0, 1, 4, 5, 7, 8, 11, 12] } // C double harmonic
+      1: { root: 220, notes: [0, 3, 5, 7, 10, 12, 15, 17] }, // Am pentatónica
+      2: { root: 146.83, notes: [0, 2, 3, 5, 7, 9, 10, 12] },    // D dorian
+      3: { root: 174.61, notes: [0, 1, 3, 5, 7, 8, 10, 12] },  // F phrygian
+      4: { root: 164.81, notes: [0, 2, 3, 5, 7, 8, 10, 12] },   // E aeolian
+      5: { root: 130.81, notes: [0, 1, 4, 5, 7, 8, 11, 12] } // C double harmonic
     };
   }
 
@@ -360,8 +517,8 @@ class SoundEngine {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(987.77, now); // B5
-      osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+      osc.frequency.setValueAtTime(987.77, now);
+      osc.frequency.setValueAtTime(1318.51, now + 0.08);
       gain.gain.setValueAtTime(0.35, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
       osc.connect(gain);
@@ -465,7 +622,6 @@ class SoundEngine {
 
   setLevel(levelIndex) {
     this.currentLevel = levelIndex;
-    // El tempo aumenta con los niveles
     this.tempo = 112 + (levelIndex * 9);
     if (this.bgmTimer) {
       clearInterval(this.bgmTimer);
@@ -475,7 +631,7 @@ class SoundEngine {
 
   startBGM() {
     if (this.bgmTimer) clearInterval(this.bgmTimer);
-    const stepInterval = (60 / this.tempo / 4) * 1000; // semicorcheas (16th notes)
+    const stepInterval = (60 / this.tempo / 4) * 1000;
 
     this.bgmTimer = setInterval(() => {
       if (this.muted || !this.ctx || this.ctx.state !== 'running') return;
@@ -485,21 +641,18 @@ class SoundEngine {
       const root = scaleData.root;
       const notes = scaleData.notes;
 
-      // 1. Bassline (patrón rítmico en corcheas / contratiempos)
       if (step % 2 === 0) {
         const bassNoteIdx = [0, 0, 3, 0, 4, 0, 2, 0][Math.floor(step / 2)];
         const bassFreq = root * Math.pow(2, (notes[bassNoteIdx % notes.length] - 12) / 12);
         this.playTone(bassFreq, 'triangle', 0.12, 0.28);
       }
 
-      // 2. Synth Arpegio Cyberpunk (pasos 16ths con variaciones)
       if (step % 2 === 1 || step === 0 || step === 8) {
         const arpIdx = (step * 3 + this.currentLevel) % notes.length;
         const arpFreq = root * Math.pow(2, (notes[arpIdx] + 12) / 12);
         this.playTone(arpFreq, 'square', 0.08, 0.09);
       }
 
-      // 3. Hi-Hat chiptune de percusión procedural en contratiempos
       if (step % 4 === 2) {
         this.playTone(3200 + Math.random() * 800, 'sawtooth', 0.03, 0.05);
       }
@@ -540,7 +693,7 @@ class ParticleSystem {
       const p = this.particles[i];
       p.x += p.vx;
       p.y += p.vy;
-      p.vy += 0.08; // Gravedad suave en partículas
+      p.vy += 0.08;
       p.life--;
       if (p.life <= 0) {
         this.particles.splice(i, 1);
@@ -563,7 +716,7 @@ class ParticleSystem {
 }
 
 // ==========================================
-// 3. CLASE JUGADOR CON FÍSICAS FLUIDAS
+// 3. JUGADOR CON FÍSICAS FLUIDAS (AABB)
 // ==========================================
 class Player {
   constructor(x, y) {
@@ -580,7 +733,7 @@ class Player {
     this.vx = 0;
     this.vy = 0;
     this.grounded = false;
-    this.facing = 1; // 1: derecha, -1: izquierda
+    this.facing = 1;
     this.coyoteTimer = 0;
     this.jumpBuffer = 0;
     this.runAnimTimer = 0;
@@ -594,7 +747,6 @@ class Player {
 
     if (this.invincibleTimer > 0) this.invincibleTimer--;
 
-    // 1. Movimiento Horizontal
     const accel = 0.85;
     const maxSpeed = 5.6;
     const friction = this.grounded ? 0.78 : 0.88;
@@ -611,23 +763,19 @@ class Player {
     }
     this.vx = Math.max(-maxSpeed, Math.min(maxSpeed, this.vx));
 
-    // Estela de movimiento Cyberpunk (After-images)
     if (Math.abs(this.vx) > 3.8 && Math.random() < 0.35) {
       this.afterImages.push({
         x: this.x,
         y: this.y,
-        facing: this.facing,
         alpha: 0.5
       });
     }
 
-    // 2. Gravedad y Físicas Verticales
     const gravity = 0.46;
     const maxFall = 11;
     this.vy += gravity;
     if (this.vy > maxFall) this.vy = maxFall;
 
-    // Coyote Time y Jump Buffer
     if (this.grounded) {
       this.coyoteTimer = 6;
     } else if (this.coyoteTimer > 0) {
@@ -641,7 +789,6 @@ class Player {
       this.jumpBuffer--;
     }
 
-    // Salto reactivo con variación de altura
     if (this.jumpBuffer > 0 && this.coyoteTimer > 0) {
       this.vy = -10.8;
       this.grounded = false;
@@ -651,22 +798,17 @@ class Player {
       particles.emit(this.x + this.w / 2, this.y + this.h, '#00f0ff', 10, 2.5, 2.5, 20);
     }
 
-    // Salto variable: si suelta la tecla de salto mientras sube, reduce velocidad
     if (!input.jump && this.vy < -3.5) {
       this.vy *= 0.65;
     }
 
-    // 3. Resolución de Colisiones AABB
-    // Eje X
     this.x += this.vx;
     this.resolveCollisionsX(level);
 
-    // Eje Y
     this.grounded = false;
     this.y += this.vy;
     this.resolveCollisionsY(level, particles);
 
-    // Animación
     if (this.grounded && Math.abs(this.vx) > 0.5) {
       this.runAnimTimer += 0.22;
       if (Math.random() < 0.15) {
@@ -676,12 +818,10 @@ class Player {
       this.runAnimTimer = 0;
     }
 
-    // Caída al vacío
     if (this.y > level.height + 150) {
       this.die();
     }
 
-    // Actualizar after-images
     for (let i = this.afterImages.length - 1; i >= 0; i--) {
       this.afterImages[i].alpha -= 0.05;
       if (this.afterImages[i].alpha <= 0) {
@@ -707,18 +847,17 @@ class Player {
   resolveCollisionsY(level, particles) {
     for (const plat of level.platforms) {
       if (this.intersects(plat)) {
-        if (this.vy > 0) { // Cayendo sobre plataforma
+        if (this.vy > 0) {
           this.y = plat.y - this.h;
           this.vy = 0;
           if (!this.grounded) {
             particles.emit(this.x + this.w / 2, this.y + this.h, '#00f0ff', 6, 2, 2, 15);
           }
           this.grounded = true;
-          // Plataformas móviles arrastran al jugador
           if (plat.isMoving) {
             this.x += plat.vx || 0;
           }
-        } else if (this.vy < 0) { // Golpeando techo
+        } else if (this.vy < 0) {
           this.y = plat.y + plat.h;
           this.vy = 0;
         }
@@ -754,12 +893,10 @@ class Player {
   }
 
   draw(ctx, camX, camY) {
-    // Parpadeo de invulnerabilidad
     if (this.invincibleTimer > 0 && Math.floor(this.invincibleTimer / 4) % 2 === 0) {
       return;
     }
 
-    // Dibujar after-images
     for (const img of this.afterImages) {
       ctx.save();
       ctx.globalAlpha = img.alpha * 0.4;
@@ -772,7 +909,6 @@ class Player {
     const py = Math.round(this.y - camY);
 
     ctx.save();
-    // Invertir horizontalmente según hacia dónde mira
     if (this.facing === -1) {
       ctx.translate(px + this.w, py);
       ctx.scale(-1, 1);
@@ -780,15 +916,12 @@ class Player {
       ctx.translate(px, py);
     }
 
-    // Sombra de brillo Cyberpunk
     ctx.shadowColor = '#00f0ff';
     ctx.shadowBlur = 10;
 
-    // 1. Piernas animadas
     ctx.fillStyle = '#1a1f38';
     const legOffset = Math.sin(this.runAnimTimer) * 6;
     if (!this.grounded) {
-      // Piernas encogidas en salto
       ctx.fillRect(4, 28, 7, 10);
       ctx.fillRect(15, 26, 7, 8);
     } else {
@@ -796,25 +929,20 @@ class Player {
       ctx.fillRect(15 - legOffset, 28, 7, 14);
     }
 
-    // 2. Torso Cyber-Armadura
     ctx.fillStyle = '#10172a';
     ctx.fillRect(2, 12, 22, 18);
-    // Detalles luminosos del traje
     ctx.fillStyle = '#00f0ff';
     ctx.fillRect(6, 15, 4, 12);
     ctx.fillRect(14, 15, 6, 4);
 
-    // 3. Cabeza & Casco
     ctx.fillStyle = '#1e293b';
     ctx.fillRect(4, 2, 18, 12);
 
-    // 4. Visor Neón Brillante
     ctx.fillStyle = '#00f0ff';
     ctx.shadowColor = '#00f0ff';
     ctx.shadowBlur = 12;
     ctx.fillRect(12, 5, 11, 4);
 
-    // Bufanda de energía holográfica trasera
     ctx.fillStyle = '#ff0055';
     ctx.shadowColor = '#ff0055';
     const scarfWave = Math.sin(Date.now() * 0.01) * 3;
@@ -826,10 +954,8 @@ class Player {
 }
 
 // ==========================================
-// 4. CLASES DE ENEMIGOS PROCEDURALES
+// 4. ENEMIGOS PROCEDURALES
 // ==========================================
-
-// Nivel 1: Glitch Drone (Patrulla básica horizontal que rebota en bordes)
 class GlitchDrone {
   constructor(x, y, range = 120) {
     this.startX = x;
@@ -860,26 +986,18 @@ class GlitchDrone {
     ctx.save();
     ctx.shadowColor = '#ff0055';
     ctx.shadowBlur = 8;
-    
-    // Cuerpo robótico
     ctx.fillStyle = '#2b091f';
     ctx.fillRect(px, py + hover, this.w, this.h);
-    
-    // Ojo escáner central
     ctx.fillStyle = '#ff0055';
     const eyeX = this.vx > 0 ? px + 16 : px + 4;
     ctx.fillRect(eyeX, py + hover + 6, 8, 5);
-
-    // Propulsores inferiores
     ctx.fillStyle = '#00f0ff';
     ctx.fillRect(px + 4, py + hover + this.h, 6, 3);
     ctx.fillRect(px + 18, py + hover + this.h, 6, 3);
-
     ctx.restore();
   }
 }
 
-// Nivel 2: Hopper Bot (Patrulla y salta periódicamente)
 class HopperBot {
   constructor(x, y) {
     this.x = x;
@@ -898,7 +1016,6 @@ class HopperBot {
     this.vy += 0.45;
     this.x += this.vx;
 
-    // Choque con paredes del nivel
     for (const plat of level.platforms) {
       if (this.intersects(plat)) {
         if (this.vx > 0) {
@@ -911,7 +1028,6 @@ class HopperBot {
       }
     }
 
-    // Colisión vertical
     this.y += this.vy;
     this.grounded = false;
     for (const plat of level.platforms) {
@@ -924,7 +1040,6 @@ class HopperBot {
       }
     }
 
-    // Temporizador de salto
     this.jumpTimer--;
     if (this.jumpTimer <= 0 && this.grounded) {
       this.vy = -8.2;
@@ -945,37 +1060,28 @@ class HopperBot {
   draw(ctx, camX, camY) {
     const px = this.x - camX;
     const py = this.y - camY;
-
     ctx.save();
     ctx.shadowColor = '#ffe600';
     ctx.shadowBlur = 8;
-
-    // Resorte / Patas
     ctx.fillStyle = '#423c08';
     ctx.fillRect(px + 7, py + 18, 12, 12);
-
-    // Chasis amarillo neón
     ctx.fillStyle = '#ffe600';
     ctx.fillRect(px + 2, py + 2, 22, 18);
-
-    // Núcleo de energía
     ctx.fillStyle = '#090814';
     ctx.fillRect(px + 6, py + 6, 14, 10);
     ctx.fillStyle = '#ff0055';
     ctx.fillRect(px + 9, py + 9, 8, 4);
-
     ctx.restore();
   }
 }
 
-// Nivel 3: Turret Sentry (Fija en plataforma, dispara proyectiles de plasma)
 class TurretSentry {
   constructor(x, y, dir = -1) {
     this.x = x;
     this.y = y;
     this.w = 32;
     this.h = 32;
-    this.dir = dir; // 1 o -1
+    this.dir = dir;
     this.shootTimer = 110;
     this.type = 'turret';
     this.isDead = false;
@@ -986,7 +1092,6 @@ class TurretSentry {
     if (this.shootTimer <= 0) {
       this.shootTimer = 130;
       audio.playLaser();
-      // Generar proyectil de plasma
       projectiles.push({
         x: this.dir > 0 ? this.x + this.w : this.x - 12,
         y: this.y + 11,
@@ -1001,32 +1106,20 @@ class TurretSentry {
   draw(ctx, camX, camY) {
     const px = this.x - camX;
     const py = this.y - camY;
-
     ctx.save();
     ctx.shadowColor = '#ff0055';
     ctx.shadowBlur = 10;
-
-    // Base de torreta
     ctx.fillStyle = '#1c1829';
     ctx.fillRect(px, py + 14, this.w, 18);
-
-    // Cañón
     ctx.fillStyle = '#ff0055';
-    if (this.dir < 0) {
-      ctx.fillRect(px - 6, py + 8, 18, 8);
-    } else {
-      ctx.fillRect(px + 20, py + 8, 18, 8);
-    }
-
-    // Cabina giratoria
+    if (this.dir < 0) ctx.fillRect(px - 6, py + 8, 18, 8);
+    else ctx.fillRect(px + 20, py + 8, 18, 8);
     ctx.fillStyle = '#00f0ff';
     ctx.fillRect(px + 8, py + 2, 16, 14);
-
     ctx.restore();
   }
 }
 
-// Nivel 4: Hunter Drone (Volador aéreo con movimiento sinusoidal de ataque)
 class HunterDrone {
   constructor(x, y, distance = 160) {
     this.startX = x;
@@ -1050,12 +1143,9 @@ class HunterDrone {
   draw(ctx, camX, camY) {
     const px = this.x - camX;
     const py = this.y - camY;
-
     ctx.save();
     ctx.shadowColor = '#00ff66';
     ctx.shadowBlur = 10;
-
-    // Alas afiladas de ciber-avispón
     ctx.fillStyle = '#00ff66';
     ctx.beginPath();
     ctx.moveTo(px + 15, py);
@@ -1064,18 +1154,14 @@ class HunterDrone {
     ctx.lineTo(px + 34, py + 12);
     ctx.closePath();
     ctx.fill();
-
-    // Ojo cazador violeta
     ctx.fillStyle = '#150d2a';
     ctx.fillRect(px + 9, py + 7, 12, 10);
     ctx.fillStyle = '#ffe600';
     ctx.fillRect(px + 12, py + 9, 6, 6);
-
     ctx.restore();
   }
 }
 
-// Nivel 5: Apex Sentinel (Persecución activa al jugador + Disparo cargado)
 class ApexSentinel {
   constructor(x, y) {
     this.x = x;
@@ -1092,18 +1178,15 @@ class ApexSentinel {
 
   update(level, player, projectiles) {
     this.vy += 0.45;
-    
-    // IA de Persecución
     const dist = player.x - this.x;
     if (Math.abs(dist) < 420) {
       this.facing = dist > 0 ? 1 : -1;
-      this.vx = this.facing * 2.3; // Avanza rápido hacia el jugador
+      this.vx = this.facing * 2.3;
     } else {
       this.vx = 0;
     }
 
     this.x += this.vx;
-    // Resolver colisión X con plataformas
     for (const plat of level.platforms) {
       if (this.intersects(plat)) {
         if (this.vx > 0) this.x = plat.x - this.w;
@@ -1121,7 +1204,6 @@ class ApexSentinel {
       }
     }
 
-    // Disparo cargado si está cerca
     this.chargeTimer--;
     if (this.chargeTimer <= 0 && Math.abs(dist) < 380) {
       this.chargeTimer = 110;
@@ -1149,30 +1231,20 @@ class ApexSentinel {
   draw(ctx, camX, camY) {
     const px = this.x - camX;
     const py = this.y - camY;
-
     ctx.save();
     ctx.shadowColor = '#ff0055';
     ctx.shadowBlur = 12;
-
-    // Chasis Blindado Púrpura/Rojo
     ctx.fillStyle = '#1c071d';
     ctx.fillRect(px, py + 8, this.w, 36);
-
-    // Placas de armadura Apex
     ctx.fillStyle = '#ff0055';
     ctx.fillRect(px + 4, py + 12, this.w - 8, 10);
     ctx.fillRect(px + 6, py + 26, this.w - 12, 12);
-
-    // Corona cibernética / Sensores
     ctx.fillStyle = '#ffe600';
     ctx.fillRect(px + 2, py, 6, 8);
     ctx.fillRect(px + this.w - 8, py, 6, 8);
-
-    // Visor Central amenazante
     ctx.fillStyle = '#00f0ff';
     const eyeOffset = this.facing > 0 ? 16 : 4;
     ctx.fillRect(px + eyeOffset, py + 14, 12, 6);
-
     ctx.restore();
   }
 }
@@ -1182,9 +1254,7 @@ class ApexSentinel {
 // ==========================================
 function buildLevels() {
   return [
-    // ----------------------------------------
-    // NIVEL 1: SECTOR 1 - NEON ALLEY (Introducción)
-    // ----------------------------------------
+    // SECTOR 1
     {
       name: "SECTOR 1: NEON ALLEY",
       width: 2800,
@@ -1192,26 +1262,20 @@ function buildLevels() {
       playerStart: { x: 80, y: 380 },
       portal: { x: 2680, y: 380, w: 40, h: 64 },
       platforms: [
-        // Suelo continuo inicial
         { x: 0, y: 460, w: 900, h: 140, type: 'ground' },
-        // Primeros peldaños
         { x: 380, y: 360, w: 140, h: 24, type: 'metal' },
         { x: 580, y: 280, w: 160, h: 24, type: 'metal' },
-        // Hueco 1
         { x: 980, y: 460, w: 600, h: 140, type: 'ground' },
         { x: 1100, y: 350, w: 140, h: 24, type: 'metal' },
         { x: 1300, y: 260, w: 150, h: 24, type: 'metal' },
-        // Hueco 2
         { x: 1660, y: 460, w: 450, h: 140, type: 'ground' },
         { x: 1800, y: 340, w: 130, h: 24, type: 'metal' },
         { x: 2000, y: 250, w: 140, h: 24, type: 'metal' },
-        // Plataforma final con portal
         { x: 2200, y: 460, w: 600, h: 140, type: 'ground' }
       ],
       movingPlatforms: [],
       jumpPads: [],
       hazards: [
-        // Fosos letales
         { x: 900, y: 550, w: 80, h: 50, type: 'spikes' },
         { x: 1580, y: 550, w: 80, h: 50, type: 'spikes' },
         { x: 2110, y: 550, w: 90, h: 50, type: 'spikes' }
@@ -1233,9 +1297,7 @@ function buildLevels() {
       ]
     },
 
-    // ----------------------------------------
-    // NIVEL 2: SECTOR 2 - ACID FOUNDRY (Plataformas móviles y Saltadores)
-    // ----------------------------------------
+    // SECTOR 2
     {
       name: "SECTOR 2: ACID FOUNDRY",
       width: 3200,
@@ -1246,7 +1308,6 @@ function buildLevels() {
         { x: 0, y: 460, w: 500, h: 140, type: 'ground' },
         { x: 600, y: 380, w: 130, h: 22, type: 'metal' },
         { x: 840, y: 460, w: 260, h: 140, type: 'ground' },
-        // Plataformas intermedias sobre el lago de ácido
         { x: 1350, y: 360, w: 140, h: 22, type: 'metal' },
         { x: 1750, y: 460, w: 320, h: 140, type: 'ground' },
         { x: 2300, y: 360, w: 140, h: 22, type: 'metal' },
@@ -1254,7 +1315,6 @@ function buildLevels() {
         { x: 2980, y: 360, w: 220, h: 240, type: 'ground' }
       ],
       movingPlatforms: [
-        // Plataformas móviles oscilatorias
         { x: 1130, y: 400, w: 110, h: 20, minX: 1120, maxX: 1300, vx: 1.6, isMoving: true },
         { x: 1530, y: 320, w: 100, h: 20, minX: 1510, maxX: 1700, vx: -1.8, isMoving: true },
         { x: 2100, y: 380, w: 110, h: 20, minX: 2080, maxX: 2260, vx: 2.0, isMoving: true },
@@ -1262,7 +1322,6 @@ function buildLevels() {
       ],
       jumpPads: [],
       hazards: [
-        // Lago continuo de ácido tóxico
         { x: 490, y: 520, w: 360, h: 80, type: 'acid' },
         { x: 1100, y: 520, w: 660, h: 80, type: 'acid' },
         { x: 2070, y: 520, w: 620, h: 80, type: 'acid' }
@@ -1286,9 +1345,7 @@ function buildLevels() {
       ]
     },
 
-    // ----------------------------------------
-    // NIVEL 3: SECTOR 3 - LASER GRID (Torretas y Rayos Láser)
-    // ----------------------------------------
+    // SECTOR 3
     {
       name: "SECTOR 3: LASER GRID",
       width: 3400,
@@ -1314,7 +1371,6 @@ function buildLevels() {
         { x: 450, y: 530, w: 290, h: 70, type: 'acid' },
         { x: 1140, y: 530, w: 510, h: 70, type: 'spikes' },
         { x: 2100, y: 530, w: 550, h: 70, type: 'acid' },
-        // Rayos láser intermitentes
         { x: 920, y: 330, w: 8, h: 130, type: 'laser', cycle: 120, active: true },
         { x: 1780, y: 330, w: 8, h: 130, type: 'laser', cycle: 120, active: true },
         { x: 2850, y: 330, w: 8, h: 130, type: 'laser', cycle: 120, active: true }
@@ -1339,9 +1395,7 @@ function buildLevels() {
       ]
     },
 
-    // ----------------------------------------
-    // NIVEL 4: SECTOR 4 - SKYLINE NEXUS (Verticalidad, Avispones y Trampolines)
-    // ----------------------------------------
+    // SECTOR 4
     {
       name: "SECTOR 4: SKYLINE NEXUS",
       width: 3600,
@@ -1350,7 +1404,6 @@ function buildLevels() {
       portal: { x: 3480, y: 220, w: 40, h: 64 },
       platforms: [
         { x: 0, y: 460, w: 400, h: 140, type: 'ground' },
-        // Islas flotantes en las alturas
         { x: 470, y: 390, w: 120, h: 22, type: 'metal' },
         { x: 680, y: 320, w: 130, h: 22, type: 'metal' },
         { x: 920, y: 460, w: 350, h: 140, type: 'ground' },
@@ -1368,7 +1421,6 @@ function buildLevels() {
         { x: 2850, y: 320, w: 100, h: 20, minY: 180, maxY: 350, vy: -2.4, isMoving: true, vertical: true }
       ],
       jumpPads: [
-        // Trampolines de salto gravitacional (Cyber-Springboards)
         { x: 1020, y: 442, w: 36, h: 18, force: -13.5 },
         { x: 1800, y: 442, w: 36, h: 18, force: -14.0 },
         { x: 2750, y: 442, w: 36, h: 18, force: -14.5 }
@@ -1391,7 +1443,7 @@ function buildLevels() {
       cores: [
         { x: 520, y: 330, collected: false },
         { x: 740, y: 260, collected: false },
-        { x: 1030, y: 190, collected: false }, // En lo alto del jumpPad
+        { x: 1030, y: 190, collected: false },
         { x: 1440, y: 210, collected: false },
         { x: 1810, y: 170, collected: false },
         { x: 2260, y: 270, collected: false },
@@ -1401,9 +1453,7 @@ function buildLevels() {
       ]
     },
 
-    // ----------------------------------------
-    // NIVEL 5: SECTOR 5 - THE MAINFRAME APEX (Dificultad Máxima y Apex Sentinels)
-    // ----------------------------------------
+    // SECTOR 5
     {
       name: "SECTOR 5: THE MAINFRAME APEX",
       width: 4000,
@@ -1438,7 +1488,6 @@ function buildLevels() {
         { x: 1150, y: 530, w: 330, h: 70, type: 'spikes' },
         { x: 1980, y: 530, w: 570, h: 70, type: 'acid' },
         { x: 3050, y: 530, w: 650, h: 70, type: 'spikes' },
-        // Láseres activos
         { x: 950, y: 320, w: 8, h: 140, type: 'laser', cycle: 100, active: true },
         { x: 1750, y: 320, w: 8, h: 140, type: 'laser', cycle: 100, active: true },
         { x: 2850, y: 320, w: 8, h: 140, type: 'laser', cycle: 90, active: true }
@@ -1471,14 +1520,367 @@ function buildLevels() {
 }
 
 // ==========================================
-// 6. CONTROLADOR PRINCIPAL DEL JUEGO
+// 6. MOTOR 2.5D CON THREE.JS
+// ==========================================
+class ThreeRenderer {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.width = 960;
+    this.height = 540;
+    this.initScene();
+    this.meshes = {
+      platforms: [],
+      enemies: [],
+      cores: [],
+      hazards: [],
+      jumpPads: [],
+      portal: null
+    };
+  }
+
+  initScene() {
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x060511);
+    this.scene.fog = new THREE.FogExp2(0x060511, 0.00085);
+
+    this.camera = new THREE.PerspectiveCamera(48, this.width / this.height, 1, 3000);
+    this.camera.position.set(200, 350, 520);
+
+    this.renderer = new THREE.WebGLRenderer({
+      canvas: this.canvas,
+      antialias: true,
+      powerPreference: 'high-performance'
+    });
+    this.renderer.setSize(this.width, this.height);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const ambient = new THREE.AmbientLight(0x1a153a, 1.2);
+    this.scene.add(ambient);
+
+    this.dirLight = new THREE.DirectionalLight(0x00f0ff, 1.4);
+    this.dirLight.position.set(300, 700, 400);
+    this.dirLight.castShadow = true;
+    this.dirLight.shadow.mapSize.width = 1024;
+    this.dirLight.shadow.mapSize.height = 1024;
+    this.scene.add(this.dirLight);
+
+    const pinkLight = new THREE.PointLight(0xff0055, 2.5, 900);
+    pinkLight.position.set(0, 300, 150);
+    this.scene.add(pinkLight);
+    this.pinkLight = pinkLight;
+
+    this.createBackgroundCity();
+    this.createPlayerMesh();
+  }
+
+  createBackgroundCity() {
+    const cityGroup = new THREE.Group();
+    const matBuilding = new THREE.MeshStandardMaterial({
+      color: 0x09071c,
+      roughness: 0.6,
+      metalness: 0.8
+    });
+    const matWindow = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+
+    for (let i = 0; i < 45; i++) {
+      const bw = 50 + Math.random() * 80;
+      const bh = 220 + Math.random() * 420;
+      const bd = 50 + Math.random() * 80;
+      const geom = new THREE.BoxGeometry(bw, bh, bd);
+      const building = new THREE.Mesh(geom, matBuilding);
+      building.position.set(
+        (i - 5) * 95 + (Math.random() * 30),
+        bh / 2 - 120,
+        -180 - Math.random() * 350
+      );
+      cityGroup.add(building);
+
+      if (Math.random() < 0.65) {
+        const winGeom = new THREE.BoxGeometry(bw * 0.8, 12, bd * 1.02);
+        const win = new THREE.Mesh(winGeom, matWindow);
+        win.position.copy(building.position);
+        win.position.y += (Math.random() * (bh * 0.6) - bh * 0.3);
+        cityGroup.add(win);
+      }
+    }
+    this.scene.add(cityGroup);
+  }
+
+  createPlayerMesh() {
+    this.playerGroup = new THREE.Group();
+
+    const matBody = new THREE.MeshStandardMaterial({ color: 0x10172a, roughness: 0.3, metalness: 0.85 });
+    const matVisor = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    const matScarf = new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0xff0055, emissiveIntensity: 0.8 });
+    const matLimb = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.7 });
+
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(22, 18, 16), matBody);
+    torso.position.y = 20;
+    torso.castShadow = true;
+    this.playerGroup.add(torso);
+
+    const head = new THREE.Mesh(new THREE.BoxGeometry(16, 12, 14), matBody);
+    head.position.y = 34;
+    head.castShadow = true;
+    this.playerGroup.add(head);
+
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(12, 4, 3), matVisor);
+    visor.position.set(0, 34, 7.5);
+    this.playerGroup.add(visor);
+    this.playerVisor = visor;
+
+    const scarf = new THREE.Mesh(new THREE.BoxGeometry(14, 4, 18), matScarf);
+    scarf.position.set(0, 26, -9);
+    this.playerGroup.add(scarf);
+    this.playerScarf = scarf;
+
+    this.leftLeg = new THREE.Mesh(new THREE.BoxGeometry(7, 14, 7), matLimb);
+    this.leftLeg.position.set(-5, 7, 0);
+    this.leftLeg.castShadow = true;
+    this.playerGroup.add(this.leftLeg);
+
+    this.rightLeg = new THREE.Mesh(new THREE.BoxGeometry(7, 14, 7), matLimb);
+    this.rightLeg.position.set(5, 7, 0);
+    this.rightLeg.castShadow = true;
+    this.playerGroup.add(this.rightLeg);
+
+    this.scene.add(this.playerGroup);
+  }
+
+  buildLevel3D(level) {
+    const toRemove = [
+      ...this.meshes.platforms,
+      ...this.meshes.enemies,
+      ...this.meshes.cores,
+      ...this.meshes.hazards,
+      ...this.meshes.jumpPads
+    ];
+    if (this.meshes.portal) toRemove.push(this.meshes.portal);
+    for (const m of toRemove) {
+      this.scene.remove(m);
+    }
+    this.meshes.platforms = [];
+    this.meshes.enemies = [];
+    this.meshes.cores = [];
+    this.meshes.hazards = [];
+    this.meshes.jumpPads = [];
+
+    const matPlat = new THREE.MeshStandardMaterial({ color: 0x111322, roughness: 0.35, metalness: 0.8 });
+    const matTopNeon = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    const matMovingNeon = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+
+    const allPlats = [...level.platforms, ...level.movingPlatforms];
+    for (const p of allPlats) {
+      const platGroup = new THREE.Group();
+      const geom = new THREE.BoxGeometry(p.w, p.h, 60);
+      const mesh = new THREE.Mesh(geom, matPlat);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      platGroup.add(mesh);
+
+      const topGeom = new THREE.BoxGeometry(p.w, 4, 62);
+      const topMesh = new THREE.Mesh(topGeom, p.isMoving ? matMovingNeon : matTopNeon);
+      topMesh.position.y = p.h / 2;
+      platGroup.add(topMesh);
+
+      platGroup.position.set(p.x + p.w / 2, 600 - p.y - p.h / 2, 0);
+      platGroup.userData = { platRef: p };
+      this.scene.add(platGroup);
+      this.meshes.platforms.push(platGroup);
+    }
+
+    const matPad = new THREE.MeshStandardMaterial({ color: 0x00ff66, emissive: 0x00ff66, emissiveIntensity: 0.6 });
+    for (const pad of level.jumpPads) {
+      const padMesh = new THREE.Mesh(new THREE.BoxGeometry(pad.w, pad.h, 50), matPad);
+      padMesh.position.set(pad.x + pad.w / 2, 600 - pad.y - pad.h / 2, 0);
+      this.scene.add(padMesh);
+      this.meshes.jumpPads.push(padMesh);
+    }
+
+    const matAcid = new THREE.MeshStandardMaterial({
+      color: 0x00ff66,
+      emissive: 0x00ff66,
+      emissiveIntensity: 0.8,
+      transparent: true,
+      opacity: 0.85,
+      roughness: 0.1
+    });
+    const matSpike = new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0xff0055, emissiveIntensity: 0.7 });
+
+    for (const h of level.hazards) {
+      if (h.type === 'acid') {
+        const acidMesh = new THREE.Mesh(new THREE.BoxGeometry(h.w, h.h, 70), matAcid);
+        acidMesh.position.set(h.x + h.w / 2, 600 - h.y - h.h / 2, 0);
+        this.scene.add(acidMesh);
+        this.meshes.hazards.push(acidMesh);
+      } else if (h.type === 'spikes') {
+        const spikeGroup = new THREE.Group();
+        const count = Math.floor(h.w / 18);
+        const coneGeom = new THREE.ConeGeometry(9, h.h, 8);
+        for (let s = 0; s < count; s++) {
+          const cone = new THREE.Mesh(coneGeom, matSpike);
+          cone.position.set((s - count / 2) * 18 + 9, h.h / 2, 0);
+          cone.castShadow = true;
+          spikeGroup.add(cone);
+        }
+        spikeGroup.position.set(h.x + h.w / 2, 600 - h.y - h.h, 0);
+        this.scene.add(spikeGroup);
+        this.meshes.hazards.push(spikeGroup);
+      } else if (h.type === 'laser') {
+        const laserGeom = new THREE.CylinderGeometry(4, 4, h.h, 12);
+        const laserMat = new THREE.MeshBasicMaterial({ color: 0xff0055, transparent: true, opacity: 0.9 });
+        const laserMesh = new THREE.Mesh(laserGeom, laserMat);
+        laserMesh.position.set(h.x + h.w / 2, 600 - h.y - h.h / 2, 0);
+        laserMesh.userData = { hazardRef: h };
+        this.scene.add(laserMesh);
+        this.meshes.hazards.push(laserMesh);
+      }
+    }
+
+    const matCore = new THREE.MeshStandardMaterial({
+      color: 0x00f0ff,
+      emissive: 0x00f0ff,
+      emissiveIntensity: 0.9,
+      metalness: 0.9,
+      roughness: 0.1
+    });
+    for (const core of level.cores) {
+      const coreMesh = new THREE.Mesh(new THREE.OctahedronGeometry(12, 0), matCore);
+      coreMesh.position.set(core.x, 600 - core.y, 0);
+      coreMesh.userData = { coreRef: core };
+      this.scene.add(coreMesh);
+      this.meshes.cores.push(coreMesh);
+    }
+
+    const portalGroup = new THREE.Group();
+    const ringMat1 = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true });
+    const ringMat2 = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+    const ring1 = new THREE.Mesh(new THREE.TorusGeometry(28, 3, 12, 32), ringMat1);
+    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(18, 2, 12, 32), ringMat2);
+    portalGroup.add(ring1);
+    portalGroup.add(ring2);
+    portalGroup.position.set(level.portal.x + level.portal.w / 2, 600 - level.portal.y - level.portal.h / 2, 0);
+    this.scene.add(portalGroup);
+    this.meshes.portal = portalGroup;
+
+    for (const enemy of level.enemies) {
+      const eGroup = new THREE.Group();
+      if (enemy.type === 'drone') {
+        const droneBody = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff0055, roughness: 0.3 }));
+        droneBody.castShadow = true;
+        eGroup.add(droneBody);
+      } else if (enemy.type === 'hopper') {
+        const hopperBody = new THREE.Mesh(new THREE.BoxGeometry(22, 22, 22), new THREE.MeshStandardMaterial({ color: 0xffe600, roughness: 0.3 }));
+        hopperBody.castShadow = true;
+        eGroup.add(hopperBody);
+      } else if (enemy.type === 'turret') {
+        const turretBase = new THREE.Mesh(new THREE.CylinderGeometry(14, 18, 24, 12), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+        const cannon = new THREE.Mesh(new THREE.BoxGeometry(20, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff0055 }));
+        cannon.position.set(-6, 4, 0);
+        turretBase.add(cannon);
+        turretBase.castShadow = true;
+        eGroup.add(turretBase);
+      } else if (enemy.type === 'hunter') {
+        const hunterBody = new THREE.Mesh(new THREE.ConeGeometry(15, 28, 4), new THREE.MeshStandardMaterial({ color: 0x00ff66, emissive: 0x00ff66, emissiveIntensity: 0.5 }));
+        hunterBody.rotation.z = Math.PI / 2;
+        eGroup.add(hunterBody);
+      } else if (enemy.type === 'apex') {
+        const apexBody = new THREE.Mesh(new THREE.BoxGeometry(28, 38, 26), new THREE.MeshStandardMaterial({ color: 0xff0055, roughness: 0.2, metalness: 0.9 }));
+        apexBody.castShadow = true;
+        eGroup.add(apexBody);
+      }
+      eGroup.userData = { enemyRef: enemy };
+      this.scene.add(eGroup);
+      this.meshes.enemies.push(eGroup);
+    }
+  }
+
+  render(player, level, particles, projectiles) {
+    const time = Date.now() * 0.003;
+
+    this.playerGroup.position.set(player.x + player.w / 2, 600 - player.y - player.h, 0);
+    this.playerGroup.scale.x = player.facing;
+    this.playerGroup.visible = !(player.invincibleTimer > 0 && Math.floor(player.invincibleTimer / 4) % 2 === 0);
+
+    if (player.grounded && Math.abs(player.vx) > 0.5) {
+      const legAngle = Math.sin(player.runAnimTimer * 1.5) * 0.6;
+      this.leftLeg.rotation.x = legAngle;
+      this.rightLeg.rotation.x = -legAngle;
+    } else {
+      this.leftLeg.rotation.x = 0;
+      this.rightLeg.rotation.x = 0;
+    }
+
+    this.playerScarf.rotation.y = Math.sin(time * 3) * 0.2;
+    this.pinkLight.position.set(player.x + 80, 600 - player.y + 40, 100);
+
+    for (const pm of this.meshes.platforms) {
+      const p = pm.userData.platRef;
+      if (p && p.isMoving) {
+        pm.position.set(p.x + p.w / 2, 600 - p.y - p.h / 2, 0);
+      }
+    }
+
+    for (const cm of this.meshes.cores) {
+      const c = cm.userData.coreRef;
+      if (c) {
+        cm.visible = !c.collected;
+        cm.rotation.x += 0.025;
+        cm.rotation.y += 0.035;
+      }
+    }
+
+    if (this.meshes.portal) {
+      this.meshes.portal.children[0].rotation.z += 0.02;
+      this.meshes.portal.children[1].rotation.x += 0.03;
+    }
+
+    for (const em of this.meshes.enemies) {
+      const e = em.userData.enemyRef;
+      if (e) {
+        em.visible = !e.isDead;
+        em.position.set(e.x + e.w / 2, 600 - e.y - e.h / 2, 0);
+        if (e.type === 'drone') {
+          em.position.y += Math.sin(time * 4) * 4;
+        } else if (e.type === 'apex') {
+          em.scale.x = e.facing;
+        }
+      }
+    }
+
+    for (const hm of this.meshes.hazards) {
+      const h = hm.userData && hm.userData.hazardRef;
+      if (h && h.type === 'laser') {
+        hm.visible = h.active;
+      }
+    }
+
+    const targetCamX = player.x + 120;
+    const targetCamY = 600 - player.y + 50;
+    this.camera.position.x += (targetCamX - this.camera.position.x) * 0.08;
+    this.camera.position.y += (targetCamY - this.camera.position.y) * 0.08;
+    this.camera.position.z = 460;
+    this.camera.lookAt(this.camera.position.x, this.camera.position.y - 40, 0);
+
+    this.renderer.render(this.scene, this.camera);
+  }
+}
+
+// ==========================================
+// 7. CONTROLADOR PRINCIPAL DEL JUEGO
 // ==========================================
 class Game {
   constructor() {
-    this.canvas = document.getElementById('gameCanvas');
-    this.ctx = this.canvas.getContext('2d');
+    this.canvas2D = document.getElementById('gameCanvas');
+    this.ctx = this.canvas2D.getContext('2d');
+    this.canvas3D = document.getElementById('threeCanvas');
+
     this.width = 960;
     this.height = 540;
+
+    this.renderMode = localStorage.getItem('cybersurge_render_mode') || '3D';
 
     this.input = {
       left: false,
@@ -1495,92 +1897,139 @@ class Game {
     this.score = 0;
     this.lives = 3;
 
-    // Estados: 'START', 'PLAYING', 'LEVEL_WIN', 'GAME_OVER', 'VICTORY'
     this.state = 'START';
     this.transitionTimer = 0;
 
     this.camX = 0;
     this.camY = 0;
 
+    this.renderer3D = new ThreeRenderer(this.canvas3D);
+
     this.setupInputs();
+    this.setupModeSelector();
+    this.setRenderMode(this.renderMode);
     this.loadLevel(0);
-    this.lastTime = performance.now();
+
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
+  }
+
+  setupModeSelector() {
+    const modal = document.getElementById('mode-modal');
+    const btn2D = document.getElementById('btn-select-2d');
+    const btn3D = document.getElementById('btn-select-3d');
+    const btnSwitch = document.getElementById('touch-switch-mode');
+
+    const chooseMode = (mode) => {
+      audio.init();
+      this.setRenderMode(mode);
+      modal.style.display = 'none';
+      this.state = 'PLAYING';
+    };
+
+    if (btn2D) btn2D.addEventListener('click', () => chooseMode('2D'));
+    if (btn3D) btn3D.addEventListener('click', () => chooseMode('3D'));
+
+    if (btnSwitch) {
+      btnSwitch.addEventListener('click', (e) => {
+        if (e.cancelable) e.preventDefault();
+        this.toggleRenderMode();
+      });
+      btnSwitch.addEventListener('touchstart', (e) => {
+        if (e.cancelable) e.preventDefault();
+        this.toggleRenderMode();
+      }, { passive: false });
+    }
+  }
+
+  setRenderMode(mode) {
+    this.renderMode = mode;
+    localStorage.setItem('cybersurge_render_mode', mode);
+
+    const btnSwitch = document.getElementById('touch-switch-mode');
+    const scanlines = document.getElementById('scanlinesOverlay');
+
+    if (mode === '3D') {
+      this.canvas3D.style.display = 'block';
+      this.canvas2D.style.display = 'none';
+      if (scanlines) scanlines.style.opacity = '0.25';
+      if (btnSwitch) {
+        btnSwitch.innerText = '🎮 MODO: 2.5D';
+        btnSwitch.style.borderColor = '#ffe600';
+        btnSwitch.style.color = '#ffe600';
+      }
+    } else {
+      this.canvas3D.style.display = 'none';
+      this.canvas2D.style.display = 'block';
+      if (scanlines) scanlines.style.opacity = '0.65';
+      if (btnSwitch) {
+        btnSwitch.innerText = '🎮 MODO: 2D';
+        btnSwitch.style.borderColor = '#00f0ff';
+        btnSwitch.style.color = '#00f0ff';
+      }
+    }
+  }
+
+  toggleRenderMode() {
+    const newMode = this.renderMode === '3D' ? '2D' : '3D';
+    this.setRenderMode(newMode);
+    audio.playTone(520, 'sine', 0.1, 0.25);
   }
 
   setupInputs() {
     window.addEventListener('keydown', (e) => {
       audio.init();
 
-      if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
-        this.input.left = true;
-      }
-      if (e.code === 'KeyD' || e.code === 'ArrowRight') {
-        this.input.right = true;
-      }
+      if (e.code === 'KeyA' || e.code === 'ArrowLeft') this.input.left = true;
+      if (e.code === 'KeyD' || e.code === 'ArrowRight') this.input.right = true;
       if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') {
-        if (!this.input.jump) {
-          this.input.jumpPressed = true;
-        }
+        if (!this.input.jump) this.input.jumpPressed = true;
         this.input.jump = true;
-        // Evitar scroll de pantalla
         e.preventDefault();
       }
 
-      // Reinicio con R
       if (e.code === 'KeyR') {
-        if (this.state === 'GAME_OVER' || this.state === 'VICTORY') {
-          this.restartGame();
-        } else if (this.state === 'PLAYING') {
-          this.player.die();
-        }
+        if (this.state === 'GAME_OVER' || this.state === 'VICTORY') this.restartGame();
+        else if (this.state === 'PLAYING') this.player.die();
       }
 
-      // Silenciar con M
-      if (e.code === 'KeyM') {
-        audio.toggleMute();
-      }
+      if (e.code === 'KeyM') audio.toggleMute();
+      if (e.code === 'KeyI') this.toggleControlLayout();
+      if (e.code === 'KeyC') this.toggleRenderMode();
 
-      // Invertir controles táctiles con I
-      if (e.code === 'KeyI') {
-        this.toggleControlLayout();
-      }
-
-      // Iniciar juego desde pantalla de inicio
       if (this.state === 'START') {
-        this.state = 'PLAYING';
+        const modal = document.getElementById('mode-modal');
+        if (modal && modal.style.display === 'none') {
+          this.state = 'PLAYING';
+        }
       }
     });
 
     window.addEventListener('keyup', (e) => {
-      if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
-        this.input.left = false;
-      }
-      if (e.code === 'KeyD' || e.code === 'ArrowRight') {
-        this.input.right = false;
-      }
-      if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') {
-        this.input.jump = false;
-      }
+      if (e.code === 'KeyA' || e.code === 'ArrowLeft') this.input.left = false;
+      if (e.code === 'KeyD' || e.code === 'ArrowRight') this.input.right = false;
+      if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') this.input.jump = false;
     });
 
-    // Clic en pantalla para iniciar en dispositivos táctiles / mouse
-    this.canvas.addEventListener('pointerdown', () => {
+    const triggerScreenTap = () => {
       audio.init();
       if (this.state === 'START') {
-        this.state = 'PLAYING';
+        const modal = document.getElementById('mode-modal');
+        if (modal && modal.style.display === 'none') {
+          this.state = 'PLAYING';
+        }
       } else if (this.state === 'GAME_OVER' || this.state === 'VICTORY') {
         this.restartGame();
       }
-    });
+    };
 
-    // Configuración de controles táctiles en pantalla (Móviles / Tablets)
+    this.canvas2D.addEventListener('pointerdown', triggerScreenTap);
+    this.canvas3D.addEventListener('pointerdown', triggerScreenTap);
+
     this.setupTouchControls();
   }
 
   setupTouchControls() {
-    // Detectar si el dispositivo tiene pantalla táctil o pantalla reducida
     const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 980);
     if (isTouch) {
       document.body.classList.add('touch-enabled');
@@ -1588,7 +2037,6 @@ class Game {
 
     const bindTouch = (elem, onStart, onEnd) => {
       if (!elem) return;
-      
       const handleStart = (e) => {
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
@@ -1596,7 +2044,6 @@ class Game {
         elem.classList.add('active');
         onStart();
       };
-
       const handleEnd = (e) => {
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
@@ -1608,7 +2055,6 @@ class Game {
       elem.addEventListener('touchend', handleEnd, { passive: false });
       elem.addEventListener('touchcancel', handleEnd, { passive: false });
 
-      // Soporte adicional para mouse / emulador táctil en DevTools
       elem.addEventListener('mousedown', (e) => {
         audio.init();
         elem.classList.add('active');
@@ -1631,7 +2077,6 @@ class Game {
     const btnRestart = document.getElementById('touch-restart');
     const btnLayout = document.getElementById('touch-layout');
 
-    // Cargar preferencia guardada de posición de teclas
     this.controlsInverted = localStorage.getItem('cybersurge_controls_inverted') === 'true';
     this.applyControlLayout();
 
@@ -1646,26 +2091,15 @@ class Game {
       btnLayout.addEventListener('click', handleLayoutToggle);
     }
 
-    bindTouch(btnLeft, () => {
-      this.input.left = true;
-    }, () => {
-      this.input.left = false;
-    });
-
-    bindTouch(btnRight, () => {
-      this.input.right = true;
-    }, () => {
-      this.input.right = false;
-    });
-
+    bindTouch(btnLeft, () => { this.input.left = true; }, () => { this.input.left = false; });
+    bindTouch(btnRight, () => { this.input.right = true; }, () => { this.input.right = false; });
     bindTouch(btnJump, () => {
-      if (!this.input.jump) {
-        this.input.jumpPressed = true;
-      }
+      if (!this.input.jump) this.input.jumpPressed = true;
       this.input.jump = true;
 
       if (this.state === 'START') {
-        this.state = 'PLAYING';
+        const modal = document.getElementById('mode-modal');
+        if (modal && modal.style.display === 'none') this.state = 'PLAYING';
       } else if (this.state === 'GAME_OVER' || this.state === 'VICTORY') {
         this.restartGame();
       }
@@ -1692,11 +2126,8 @@ class Game {
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
         audio.init();
-        if (this.state === 'GAME_OVER' || this.state === 'VICTORY') {
-          this.restartGame();
-        } else if (this.state === 'PLAYING') {
-          this.player.die();
-        }
+        if (this.state === 'GAME_OVER' || this.state === 'VICTORY') this.restartGame();
+        else if (this.state === 'PLAYING') this.player.die();
       };
       btnRestart.addEventListener('touchstart', triggerRestart, { passive: false });
       btnRestart.addEventListener('click', triggerRestart);
@@ -1713,15 +2144,10 @@ class Game {
   applyControlLayout() {
     const bottomBar = document.querySelector('.mobile-bottom-bar');
     const btnLayout = document.getElementById('touch-layout');
-    
     if (bottomBar) {
-      if (this.controlsInverted) {
-        bottomBar.classList.add('layout-inverted');
-      } else {
-        bottomBar.classList.remove('layout-inverted');
-      }
+      if (this.controlsInverted) bottomBar.classList.add('layout-inverted');
+      else bottomBar.classList.remove('layout-inverted');
     }
-
     if (btnLayout) {
       if (this.controlsInverted) {
         btnLayout.innerText = '⇄ MANDOS: ZURDO (SALTO IZQ)';
@@ -1741,6 +2167,8 @@ class Game {
     this.player = new Player(this.level.playerStart.x, this.level.playerStart.y);
     this.projectiles = [];
     audio.setLevel(idx + 1);
+
+    this.renderer3D.buildLevel3D(this.level);
   }
 
   restartGame() {
@@ -1753,7 +2181,6 @@ class Game {
 
   update() {
     if (this.state === 'PLAYING') {
-      // 1. Actualizar Plataformas Móviles
       for (const plat of this.level.movingPlatforms) {
         if (plat.vertical) {
           plat.y += plat.vy;
@@ -1764,20 +2191,15 @@ class Game {
         }
       }
 
-      // 2. Actualizar Peligros (Láseres temporizados)
       for (const haz of this.level.hazards) {
         if (haz.type === 'laser') {
           haz.timer = (haz.timer || 0) + 1;
-          if (haz.timer % haz.cycle === 0) {
-            haz.active = !haz.active;
-          }
+          if (haz.timer % haz.cycle === 0) haz.active = !haz.active;
         }
       }
 
-      // 3. Actualizar Jugador
       this.player.update(this.input, this.level, this.particles);
 
-      // Si el jugador murió
       if (this.player.isDead) {
         this.particles.emit(this.player.x + this.player.w / 2, this.player.y + this.player.h / 2, '#ff0055', 24, 4, 3.5, 45);
         this.lives--;
@@ -1785,58 +2207,42 @@ class Game {
           this.state = 'GAME_OVER';
           audio.playGameOver();
         } else {
-          // Reaparecer al inicio del nivel
           this.player.reset();
           this.player.invincibleTimer = 80;
         }
       }
 
-      // 4. Actualizar Enemigos
       for (const enemy of this.level.enemies) {
         if (enemy.isDead) continue;
+        if (enemy.type === 'turret') enemy.update(this.level, this.projectiles);
+        else if (enemy.type === 'apex') enemy.update(this.level, this.player, this.projectiles);
+        else enemy.update(this.level);
 
-        if (enemy.type === 'turret') {
-          enemy.update(this.level, this.projectiles);
-        } else if (enemy.type === 'apex') {
-          enemy.update(this.level, this.player, this.projectiles);
-        } else {
-          enemy.update(this.level);
-        }
-
-        // Colisión Jugador vs Enemigo
         if (this.player.intersects(enemy)) {
-          // Stomp (Mario style): cae desde arriba sobre el enemigo
           if (this.player.vy > 0 && (this.player.y + this.player.h - this.player.vy) <= enemy.y + 14) {
             enemy.isDead = true;
             this.player.bounceOnEnemy();
             this.score += 200;
             this.particles.emit(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#ffe600', 16, 3.5, 3, 30);
           } else {
-            // Recibe daño
-            if (this.player.hitHazard()) {
-              break;
-            }
+            if (this.player.hitHazard()) break;
           }
         }
       }
 
-      // 5. Proyectiles
       for (let i = this.projectiles.length - 1; i >= 0; i--) {
         const p = this.projectiles[i];
         p.x += p.vx;
-        // Colisión con jugador
         if (this.player.intersects(p)) {
           this.player.hitHazard();
           this.projectiles.splice(i, 1);
           continue;
         }
-        // Desvanecer fuera de rango
         if (p.x < this.camX - 200 || p.x > this.camX + this.width + 200) {
           this.projectiles.splice(i, 1);
         }
       }
 
-      // 6. Trampolines gravitacionales (Jump Pads)
       for (const pad of this.level.jumpPads) {
         if (this.player.intersects(pad)) {
           this.player.vy = pad.force;
@@ -1846,7 +2252,6 @@ class Game {
         }
       }
 
-      // 7. Colisión con Peligros Ambientales (Pinchos, Ácido, Láser activo)
       for (const haz of this.level.hazards) {
         if (haz.type === 'laser' && !haz.active) continue;
         if (this.player.intersects(haz)) {
@@ -1855,7 +2260,6 @@ class Game {
         }
       }
 
-      // 8. Recolección de Cyber-Cores
       for (const core of this.level.cores) {
         if (!core.collected) {
           const coreRect = { x: core.x - 12, y: core.y - 12, w: 24, h: 24 };
@@ -1868,7 +2272,6 @@ class Game {
         }
       }
 
-      // 9. Portal de Fin de Nivel
       if (this.player.intersects(this.level.portal)) {
         audio.playLevelWin();
         if (this.currentLevelIdx < this.levels.length - 1) {
@@ -1879,7 +2282,6 @@ class Game {
         }
       }
 
-      // 10. Suavizado de Cámara (Lerp Camera Follow)
       const targetCamX = this.player.x - this.width * 0.38;
       this.camX += (targetCamX - this.camX) * 0.09;
       this.camX = Math.max(0, Math.min(this.level.width - this.width, this.camX));
@@ -1901,25 +2303,46 @@ class Game {
   }
 
   draw() {
-    this.ctx.clearRect(0, 0, this.width, this.height);
+    if (this.renderMode === '3D') {
+      this.renderer3D.render(this.player, this.level, this.particles, this.projectiles);
+    } else {
+      this.draw2D();
+    }
 
-    // Fondo Parallax Cyberpunk
+    if (this.state === 'START' || this.state === 'LEVEL_WIN' || this.state === 'GAME_OVER' || this.state === 'VICTORY') {
+      if (this.renderMode === '3D') {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        this.canvas2D.style.display = 'block';
+      }
+      this.drawHUD();
+      if (this.state === 'START') this.drawStartScreen();
+      if (this.state === 'LEVEL_WIN') this.drawLevelWinBanner();
+      if (this.state === 'GAME_OVER') this.drawGameOverScreen();
+      if (this.state === 'VICTORY') this.drawVictoryScreen();
+    } else {
+      if (this.renderMode === '3D') {
+        this.canvas2D.style.display = 'none';
+      } else {
+        this.drawHUD();
+      }
+    }
+  }
+
+  draw2D() {
+    this.ctx.clearRect(0, 0, this.width, this.height);
     this.drawParallaxBackground();
 
     const camX = Math.round(this.camX);
     const camY = Math.round(this.camY);
 
-    // Dibujar Plataformas
     const allPlatforms = [...this.level.platforms, ...this.level.movingPlatforms];
     for (const plat of allPlatforms) {
       if (plat.x + plat.w < camX || plat.x > camX + this.width) continue;
-
       const px = plat.x - camX;
       const py = plat.y - camY;
 
       this.ctx.save();
       if (plat.isMoving) {
-        // Plataforma móvil con brillo cian pulsante
         this.ctx.fillStyle = '#0f172a';
         this.ctx.fillRect(px, py, plat.w, plat.h);
         this.ctx.strokeStyle = '#00f0ff';
@@ -1927,21 +2350,16 @@ class Game {
         this.ctx.shadowColor = '#00f0ff';
         this.ctx.shadowBlur = 8;
         this.ctx.strokeRect(px, py, plat.w, plat.h);
-
-        // Flechas indicadoras de dirección
         this.ctx.fillStyle = '#00f0ff';
         this.ctx.fillRect(px + plat.w / 2 - 8, py + 8, 16, 4);
       } else if (plat.type === 'ground') {
-        // Bloque de suelo con cuadrícula digital
         this.ctx.fillStyle = '#0d0c1d';
         this.ctx.fillRect(px, py, plat.w, plat.h);
-        // Borde superior neón
         this.ctx.fillStyle = '#ff0055';
         this.ctx.shadowColor = '#ff0055';
         this.ctx.shadowBlur = 6;
         this.ctx.fillRect(px, py, plat.w, 4);
       } else {
-        // Vigas metálicas suspendidas
         this.ctx.fillStyle = '#181b30';
         this.ctx.fillRect(px, py, plat.w, plat.h);
         this.ctx.fillStyle = '#00f0ff';
@@ -1950,7 +2368,6 @@ class Game {
       this.ctx.restore();
     }
 
-    // Dibujar Trampolines (Jump Pads)
     for (const pad of this.level.jumpPads) {
       const px = pad.x - camX;
       const py = pad.y - camY;
@@ -1964,26 +2381,21 @@ class Game {
       this.ctx.restore();
     }
 
-    // Dibujar Peligros
     for (const haz of this.level.hazards) {
       const px = haz.x - camX;
       const py = haz.y - camY;
-
       this.ctx.save();
       if (haz.type === 'acid') {
-        // Ácido tóxico burbujeante
         this.ctx.fillStyle = '#00ff66';
         this.ctx.shadowColor = '#00ff66';
         this.ctx.shadowBlur = 14;
         this.ctx.fillRect(px, py + 10, haz.w, haz.h);
-        // Ondas en la superficie
         this.ctx.fillStyle = '#a6ffcb';
         for (let bx = 0; bx < haz.w; bx += 20) {
           const wave = Math.sin((Date.now() * 0.005) + bx) * 4;
           this.ctx.fillRect(px + bx, py + 8 + wave, 14, 4);
         }
       } else if (haz.type === 'spikes') {
-        // Pinchos láser de energía
         this.ctx.fillStyle = '#ff0055';
         this.ctx.shadowColor = '#ff0055';
         this.ctx.shadowBlur = 10;
@@ -1997,7 +2409,6 @@ class Game {
           this.ctx.fill();
         }
       } else if (haz.type === 'laser') {
-        // Barrera de láser pulsante
         if (haz.active) {
           this.ctx.fillStyle = '#ff0055';
           this.ctx.shadowColor = '#ff0055';
@@ -2006,7 +2417,6 @@ class Game {
           this.ctx.fillStyle = '#ffffff';
           this.ctx.fillRect(px + 2, py, haz.w - 4, haz.h);
         } else {
-          // Guía desactivada
           this.ctx.fillStyle = 'rgba(255, 0, 85, 0.15)';
           this.ctx.fillRect(px + 3, py, 2, haz.h);
         }
@@ -2014,27 +2424,23 @@ class Game {
       this.ctx.restore();
     }
 
-    // Dibujar Cores (Coleccionables)
     const time = Date.now() * 0.004;
     for (const core of this.level.cores) {
       if (core.collected) continue;
       const px = core.x - camX;
       const py = core.y - camY + Math.sin(time + core.x) * 4;
-
       this.ctx.save();
       this.ctx.translate(px, py);
       this.ctx.rotate(time * 0.8);
       this.ctx.fillStyle = '#00f0ff';
       this.ctx.shadowColor = '#00f0ff';
       this.ctx.shadowBlur = 12;
-      // Diamante de datos
       this.ctx.fillRect(-8, -8, 16, 16);
       this.ctx.fillStyle = '#ffffff';
       this.ctx.fillRect(-4, -4, 8, 8);
       this.ctx.restore();
     }
 
-    // Dibujar Portal de Salida
     const p = this.level.portal;
     const portalX = p.x - camX;
     const portalY = p.y - camY;
@@ -2043,25 +2449,19 @@ class Game {
     this.ctx.shadowBlur = 20;
     this.ctx.strokeStyle = '#00f0ff';
     this.ctx.lineWidth = 3;
-    // Anillos concéntricos giratorios
     this.ctx.strokeRect(portalX, portalY, p.w, p.h);
     this.ctx.fillStyle = 'rgba(0, 240, 255, 0.15)';
     this.ctx.fillRect(portalX, portalY, p.w, p.h);
-    // Vórtice central
     this.ctx.fillStyle = '#ff0055';
     this.ctx.shadowColor = '#ff0055';
     const portalPulse = Math.sin(time * 2) * 6;
     this.ctx.fillRect(portalX + 8, portalY + 12 + portalPulse / 2, p.w - 16, p.h - 24 - portalPulse);
     this.ctx.restore();
 
-    // Dibujar Enemigos
     for (const enemy of this.level.enemies) {
-      if (!enemy.isDead) {
-        enemy.draw(this.ctx, camX, camY);
-      }
+      if (!enemy.isDead) enemy.draw(this.ctx, camX, camY);
     }
 
-    // Dibujar Proyectiles
     for (const proj of this.projectiles) {
       this.ctx.save();
       this.ctx.fillStyle = proj.color;
@@ -2071,38 +2471,23 @@ class Game {
       this.ctx.restore();
     }
 
-    // Dibujar Jugador
     this.player.draw(this.ctx, camX, camY);
-
-    // Dibujar Partículas
     this.particles.draw(this.ctx, camX, camY);
-
-    // HUD (Interfaz de Usuario)
-    this.drawHUD();
-
-    // Pantallas de Estado
-    if (this.state === 'START') this.drawStartScreen();
-    if (this.state === 'LEVEL_WIN') this.drawLevelWinBanner();
-    if (this.state === 'GAME_OVER') this.drawGameOverScreen();
-    if (this.state === 'VICTORY') this.drawVictoryScreen();
   }
 
   drawParallaxBackground() {
-    // Fondo de gradiente oscuro
     const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
     grad.addColorStop(0, '#060511');
     grad.addColorStop(1, '#180c29');
     this.ctx.fillStyle = grad;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // Capa de edificios distantes (Parallax 0.15x)
     this.ctx.save();
     this.ctx.fillStyle = '#0b0a1f';
     const bOffset = (this.camX * 0.15) % 220;
     for (let x = -bOffset - 50; x < this.width + 100; x += 110) {
       const h = 180 + ((Math.sin(x) * 1000) % 90);
       this.ctx.fillRect(x, this.height - h, 90, h);
-      // Ventanas de los rascacielos
       this.ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
       for (let wy = this.height - h + 20; wy < this.height - 20; wy += 25) {
         this.ctx.fillRect(x + 15, wy, 8, 12);
@@ -2112,7 +2497,6 @@ class Game {
       this.ctx.fillStyle = '#0b0a1f';
     }
 
-    // Capa de siluetas intermedias (Parallax 0.35x)
     this.ctx.fillStyle = '#120f2b';
     const mOffset = (this.camX * 0.35) % 300;
     for (let x = -mOffset - 60; x < this.width + 100; x += 150) {
@@ -2126,39 +2510,38 @@ class Game {
     this.ctx.save();
     this.ctx.font = 'bold 15px "Segoe UI", sans-serif';
 
-    // Panel superior translúcido
     this.ctx.fillStyle = 'rgba(9, 8, 20, 0.75)';
-    this.ctx.fillRect(15, 12, 380, 40);
+    this.ctx.fillRect(15, 12, 420, 40);
     this.ctx.strokeStyle = '#00f0ff';
     this.ctx.lineWidth = 1.5;
-    this.ctx.strokeRect(15, 12, 380, 40);
+    this.ctx.strokeRect(15, 12, 420, 40);
 
-    // Vidas (Baterías Cibernéticas)
     this.ctx.fillStyle = '#ff0055';
     this.ctx.shadowColor = '#ff0055';
     this.ctx.shadowBlur = 6;
-    this.ctx.fillText('VIDAS:', 28, 37);
+    this.ctx.fillText('VIDAS:', 26, 37);
     for (let i = 0; i < 3; i++) {
       if (i < this.lives) {
         this.ctx.fillStyle = '#ff0055';
-        this.ctx.fillRect(85 + i * 22, 24, 15, 16);
+        this.ctx.fillRect(80 + i * 20, 24, 14, 16);
       } else {
         this.ctx.strokeStyle = 'rgba(255, 0, 85, 0.4)';
-        this.ctx.strokeRect(85 + i * 22, 24, 15, 16);
+        this.ctx.strokeRect(80 + i * 20, 24, 14, 16);
       }
     }
 
-    // Puntuación
     this.ctx.fillStyle = '#00f0ff';
     this.ctx.shadowColor = '#00f0ff';
-    this.ctx.fillText(`SCORE: ${this.score}`, 170, 37);
+    this.ctx.fillText(`SCORE: ${this.score}`, 155, 37);
 
-    // Nivel
     this.ctx.fillStyle = '#ffe600';
     this.ctx.shadowColor = '#ffe600';
-    this.ctx.fillText(`NIVEL ${this.currentLevelIdx + 1}/5`, 295, 37);
+    this.ctx.fillText(`NIVEL ${this.currentLevelIdx + 1}/5`, 270, 37);
 
-    // Indicador de Sonido
+    this.ctx.fillStyle = this.renderMode === '3D' ? '#ffe600' : '#00f0ff';
+    this.ctx.shadowColor = this.ctx.fillStyle;
+    this.ctx.fillText(`[${this.renderMode === '3D' ? '2.5D' : '2D'}]`, 370, 37);
+
     this.ctx.fillStyle = audio.muted ? '#ff0055' : '#00ff66';
     this.ctx.shadowColor = audio.muted ? '#ff0055' : '#00ff66';
     this.ctx.font = 'bold 12px "Segoe UI", sans-serif';
@@ -2172,7 +2555,6 @@ class Game {
     this.ctx.fillStyle = 'rgba(6, 5, 16, 0.88)';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // Título Principal
     this.ctx.textAlign = 'center';
     this.ctx.font = '900 48px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#00f0ff';
@@ -2186,7 +2568,6 @@ class Game {
     this.ctx.shadowBlur = 15;
     this.ctx.fillText('PROTOCOL ZERO: 5 SECTORES', this.width / 2, 215);
 
-    // Instrucciones
     this.ctx.font = '16px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#e2e8f0';
     this.ctx.shadowBlur = 0;
@@ -2194,7 +2575,6 @@ class Game {
     this.ctx.fillText('Nivel 1: Drones de patrulla | Nivel 2: Acid Foundry | Nivel 3: Láseres & Torretas', this.width / 2, 320);
     this.ctx.fillText('Nivel 4: Avispones & Jump Pads | Nivel 5: Apex Sentinels', this.width / 2, 345);
 
-    // Indicador de modo de controles
     this.ctx.font = '14px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#ffe600';
     this.ctx.shadowColor = '#ffe600';
@@ -2204,7 +2584,6 @@ class Game {
       : 'MANDOS TÁCTILES: [ ◀ ▶ MOVIMIENTO (IZQ) ]  [ ▲ SALTO (DER) ]  (PULSA ⇄ O "I")';
     this.ctx.fillText(modeText, this.width / 2, 385);
 
-    // Pulsador "PRESIONA CUALQUIER TECLA"
     const pulse = Math.abs(Math.sin(Date.now() * 0.004));
     this.ctx.font = 'bold 20px "Segoe UI", sans-serif';
     this.ctx.fillStyle = `rgba(0, 240, 255, ${0.4 + pulse * 0.6})`;
@@ -2286,14 +2665,14 @@ class Game {
     this.ctx.restore();
   }
 
-  loop(currentTime) {
+  loop() {
     this.update();
     this.draw();
     requestAnimationFrame(this.loop);
   }
 }
 
-// Inicializar el juego al cargar la página
+// Inicializar el juego
 window.addEventListener('load', () => {
   new Game();
 });
