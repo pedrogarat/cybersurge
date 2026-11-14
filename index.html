@@ -1635,8 +1635,8 @@ class ThreeRenderer {
       antialias: true,
       powerPreference: 'high-performance'
     });
-    this.renderer.setSize(this.width, this.height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setSize(this.width, this.height, false);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -2005,6 +2005,17 @@ class ThreeRenderer {
     this.camera.position.set(targetCamX, targetCamY, 460);
     this.camera.lookAt(targetCamX, targetCamY - 40, 0);
   }
+
+  resize() {
+    const rect = this.canvas.getBoundingClientRect();
+    const w = rect.width || this.canvas.clientWidth || 960;
+    const h = rect.height || this.canvas.clientHeight || 540;
+    if (w > 0 && h > 0) {
+      this.camera.aspect = w / h;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(w, h, false);
+    }
+  }
 }
 
 // ==========================================
@@ -2044,6 +2055,12 @@ class Game {
     this.camY = 0;
 
     this.renderer3D = new ThreeRenderer(this.canvas3D);
+
+    window.addEventListener('resize', () => {
+      if (this.renderMode === '3D') {
+        this.renderer3D.resize();
+      }
+    });
 
     this.setupInputs();
     this.setupModeSelector();
@@ -2092,6 +2109,7 @@ class Game {
     if (mode === '3D') {
       this.canvas3D.style.display = 'block';
       this.canvas2D.style.display = 'none';
+      this.renderer3D.resize();
       if (scanlines) scanlines.style.opacity = '0.25';
       if (btnSwitch) {
         btnSwitch.innerText = '🎮 MODO: 2.5D';
@@ -2320,6 +2338,7 @@ class Game {
 
     this.renderer3D.buildLevel3D(this.level);
     this.renderer3D.snapCamera(this.player);
+    this.renderer3D.resize();
     this.camX = Math.max(0, Math.min(this.level.width - this.width, this.player.x - this.width * 0.38));
     this.camY = Math.max(0, Math.min(this.level.height - this.height, this.player.y - this.height * 0.55));
   }
