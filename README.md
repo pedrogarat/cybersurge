@@ -32,12 +32,13 @@ Un juego de plataformas 2D retro-cyberpunk al estilo clásico de *Super Mario Br
 
 ## 🎮 Controles
 
-| Acción | Teclas |
-| :--- | :--- |
-| **Moverse a la izquierda / derecha** | `A` / `D` o Flechas `←` / `→` |
-| **Saltar** | `Espacio`, `W` o Flecha `↑` |
-| **Silenciar / Activar Música y SFX** | `M` |
-| **Reiniciar Sector / Partida** | `R` |
+| Acción | Teclas | Móvil / Pantalla Táctil |
+| :--- | :--- | :--- |
+| **Moverse a la izquierda** | `A` o Flecha `←` | Botón táctil `◀` |
+| **Moverse a la derecha** | `D` o Flecha `→` | Botón táctil `▶` |
+| **Saltar** | `Espacio`, `W` o Flecha `↑` | Botón táctil `▲ SALTO` |
+| **Silenciar / Activar Música y SFX** | `M` | Botón táctil `🔊 AUDIO` |
+| **Reiniciar Sector / Partida** | `R` | Botón táctil `🔄 REINICIAR` |
 
 ---
 
