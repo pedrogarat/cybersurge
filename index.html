@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>CYBER SURGE: PROTOCOL ZERO - Retro 2D Platformer</title>
+  <title>El Beato Pedro vs Mal</title>
   <style>
     * {
       box-sizing: border-box;
@@ -255,15 +255,15 @@
   <div id="instructions-bar">
     <div>Moverse: <span>A/D o Flechas</span></div>
     <div>Saltar: <span>Espacio / W / Arriba</span></div>
-    <div>Lanzar Sombrero (Fase 2+): <span>Tecla J o Tecla F</span></div>
+    <div>Lanzar Sombrero (a partir de Fase 2): <span>Tecla J o Tecla F</span></div>
     <div>Invertir Mandos: <span>Tecla I</span></div>
     <div>Silenciar: <span>M</span></div>
   </div>
 
 <script>
 /**
- * CYBER SURGE: PROTOCOL ZERO
- * Edición 2D Clásica Arcade - Con el Sacerdote y lanzamiento de sombrero teledirigido
+ * EL BEATO PEDRO VS MAL: PROTOCOL ZERO
+ * El Beato Pedro vs Mal - 2D Retro Arcade y lanzamiento de sombrero teledirigido
  */
 
 // ==========================================
@@ -616,7 +616,7 @@ class Player {
     this.invincibleTimer = 0;
     this.isDead = false;
     this.afterImages = [];
-    this.hasHat = true; // El sombrero está puesto hasta que se lanza
+    this.hasHat = false; // El Beato Pedro no lleva sombrero hasta que lo consigue en la Fase 2
   }
 
   update(input, level, particles) {
@@ -884,9 +884,11 @@ class Player {
 }
 
 // ==========================================
-// 4. ENEMIGOS PROCEDURALES
+// ==========================================
+// 4. ENEMIGOS: PEQUEÑOS DIABLILLOS DEL MAL
 // ==========================================
 class GlitchDrone {
+  // Diablillo Patrullero con tridente
   constructor(x, y, range = 120) {
     this.startX = x;
     this.x = x;
@@ -911,66 +913,117 @@ class GlitchDrone {
   draw(ctx, camX, camY) {
     const px = this.x - camX;
     const py = this.y - camY;
-    const hover = Math.sin(this.animTimer) * 3;
-    const timeSec = Date.now() * 0.006;
+    const walkBob = Math.sin(this.animTimer * 1.5) * 2;
+    const facing = this.vx > 0 ? 1 : -1;
 
     ctx.save();
-    // Brillo y contorno de alta advertencia en rojo neón
-    ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 14;
+    ctx.translate(px + this.w / 2, py + this.h);
+    ctx.scale(facing, 1);
 
-    // Turbinas laterales oscilantes
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(px - 5, py + hover + 4, 6, 14);
-    ctx.fillRect(px + this.w - 1, py + hover + 4, 6, 14);
-    ctx.fillStyle = '#00f0ff';
-    ctx.shadowColor = '#00f0ff';
-    ctx.shadowBlur = 8;
-    ctx.fillRect(px - 4, py + hover + 16, 4, 3 + Math.sin(timeSec * 4) * 2);
-    ctx.fillRect(px + this.w, py + hover + 16, 4, 3 + Math.cos(timeSec * 4) * 2);
-
-    // Chasis principal blindado
-    ctx.fillStyle = '#e11d48';
-    ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 12;
+    // Sombra pequeña
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
     ctx.beginPath();
-    ctx.moveTo(px + 4, py + hover);
-    ctx.lineTo(px + this.w - 4, py + hover);
-    ctx.lineTo(px + this.w, py + hover + 16);
-    ctx.lineTo(px + this.w / 2, py + hover + this.h);
-    ctx.lineTo(px, py + hover + 16);
+    ctx.ellipse(0, 0, 10, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Colita con punta de flecha
+    ctx.strokeStyle = '#b91c1c';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-6, -10 + walkBob);
+    ctx.quadraticCurveTo(-14, -14 + walkBob, -16, -6 + walkBob);
+    ctx.stroke();
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath();
+    ctx.moveTo(-18, -6 + walkBob);
+    ctx.lineTo(-14, -3 + walkBob);
+    ctx.lineTo(-14, -9 + walkBob);
     ctx.closePath();
     ctx.fill();
 
-    // Borde blanco de alto contraste
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.5;
+    // Patitas
+    ctx.fillStyle = '#7f1d1d';
+    ctx.fillRect(-7, -4 + (facing * walkBob), 4, 4);
+    ctx.fillRect(3, -4 - (facing * walkBob), 4, 4);
+
+    // Cuerpo rechoncho rojo de diablillo
+    ctx.fillStyle = '#dc2626';
+    ctx.strokeStyle = '#7f1d1d';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(0, -12 + walkBob, 11, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.stroke();
 
-    // Placas de blindaje secundario
-    ctx.fillStyle = '#1e1b4b';
-    ctx.fillRect(px + 6, py + hover + 4, this.w - 12, 10);
-    
-    // Ojo escáner central cilíndrico amarillo brillante con haz
-    ctx.fillStyle = '#ffe600';
-    ctx.shadowColor = '#ffe600';
-    ctx.shadowBlur = 10;
-    const eyeOsc = (Math.sin(timeSec * 2.5) + 1) * 0.5;
-    const eyeX = px + 8 + eyeOsc * (this.w - 20);
-    ctx.fillRect(eyeX, py + hover + 6, 6, 6);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(eyeX + 1, py + hover + 7, 2, 2);
+    // Pancita
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.ellipse(2, -10 + walkBob, 6, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Luces de advertencia estroboscópicas
-    ctx.fillStyle = (Math.floor(Date.now() / 150) % 2 === 0) ? '#ff0055' : '#ffffff';
-    ctx.fillRect(px + 3, py + hover + 2, 3, 3);
-    ctx.fillRect(px + this.w - 6, py + hover + 2, 3, 3);
+    // Cuernitos
+    ctx.fillStyle = '#450a0a';
+    ctx.beginPath();
+    ctx.moveTo(-5, -20 + walkBob);
+    ctx.lineTo(-9, -27 + walkBob);
+    ctx.lineTo(-2, -21 + walkBob);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(3, -21 + walkBob);
+    ctx.lineTo(8, -27 + walkBob);
+    ctx.lineTo(7, -20 + walkBob);
+    ctx.closePath();
+    ctx.fill();
+
+    // Ojos pícaros amarillos con pupila
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.arc(2, -14 + walkBob, 2.5, 0, Math.PI * 2);
+    ctx.arc(7, -14 + walkBob, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.arc(3, -14 + walkBob, 1.2, 0, Math.PI * 2);
+    ctx.arc(8, -14 + walkBob, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sonrisa pícara con colmillito blanco
+    ctx.strokeStyle = '#450a0a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(4, -9 + walkBob, 3, 0.1, Math.PI * 0.9);
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(3, -8 + walkBob);
+    ctx.lineTo(5, -8 + walkBob);
+    ctx.lineTo(4, -5 + walkBob);
+    ctx.closePath();
+    ctx.fill();
+
+    // Tridente diminuto
+    ctx.strokeStyle = '#18181b';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(9, -2 + walkBob);
+    ctx.lineTo(9, -18 + walkBob);
+    ctx.stroke();
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.moveTo(6, -18 + walkBob);
+    ctx.lineTo(12, -18 + walkBob);
+    ctx.lineTo(9, -23 + walkBob);
+    ctx.closePath();
+    ctx.fill();
 
     ctx.restore();
   }
 }
 
 class HopperBot {
+  // Diablillo Saltarín
   constructor(x, y) {
     this.x = x;
     this.y = y;
@@ -1032,58 +1085,83 @@ class HopperBot {
   draw(ctx, camX, camY) {
     const px = this.x - camX;
     const py = this.y - camY;
-    ctx.save();
-    // Brillo dorado eléctrico ultra visible
-    ctx.shadowColor = '#ffe600';
-    ctx.shadowBlur = 14;
-
+    const compress = (this.jumpTimer < 15 && this.grounded) ? 5 : 0;
     const inAir = !this.grounded;
-    const legCompress = (this.jumpTimer < 15 && this.grounded) ? 5 : 0;
+    const facing = this.vx > 0 ? 1 : -1;
 
-    // Resorte / Patas articuladas mecánicas con amortiguación
-    ctx.fillStyle = '#64748b';
-    ctx.fillRect(px + 6, py + 18 + legCompress, 14, 10 - legCompress);
-    // Espiral del resorte hidráulico
-    ctx.strokeStyle = '#00f0ff';
-    ctx.lineWidth = 2;
+    ctx.save();
+    ctx.translate(px + this.w / 2, py + this.h);
+    ctx.scale(facing, 1);
+
+    // Sombra si está cerca del suelo
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
-    ctx.moveTo(px + 7, py + 20 + legCompress);
-    ctx.lineTo(px + 19, py + 22 + legCompress);
-    ctx.lineTo(px + 7, py + 25);
-    ctx.lineTo(px + 19, py + 27);
+    ctx.ellipse(0, 0, 11 - (inAir ? 3 : 0), 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Colita saltarina
+    ctx.strokeStyle = '#b91c1c';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-6, -12 + compress);
+    ctx.quadraticCurveTo(-14, -16 + (inAir ? 4 : 0), -15, -4);
     ctx.stroke();
 
-    // Pezuña magnética inferior
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(px + 4, py + 27, 18, 3);
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillRect(px + 6, py + 29, 14, 2); // chispa de salto
-
-    // Chasis amarillo neón intenso
-    ctx.fillStyle = '#facc15';
-    ctx.fillRect(px + 2, py + 2 + legCompress, 22, 16);
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(px + 2, py + 2 + legCompress, 22, 16);
-
-    // Ojos / Visor hostil doble
-    ctx.fillStyle = '#ff0055';
-    ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 8;
-    ctx.fillRect(px + 5, py + 6 + legCompress, 6, 5);
-    ctx.fillRect(px + 15, py + 6 + legCompress, 6, 5);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(px + 7, py + 7 + legCompress, 2, 2);
-    ctx.fillRect(px + 17, py + 7 + legCompress, 2, 2);
-
-    // Antena superior que vibra al saltar
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillRect(px + 12, py - 4 + legCompress, 2, 6);
-    ctx.fillStyle = inAir ? '#00ff66' : '#ffe600';
-    ctx.shadowColor = inAir ? '#00ff66' : '#ffe600';
-    ctx.shadowBlur = 10;
+    // Alitas pequeñas que baten en el aire
+    const wingFlap = inAir ? Math.sin(Date.now() * 0.03) * 6 : 0;
+    ctx.fillStyle = '#3f3f46';
     ctx.beginPath();
-    ctx.arc(px + 13, py - 4 + legCompress, 3, 0, Math.PI * 2);
+    ctx.moveTo(-4, -18 + compress);
+    ctx.lineTo(-12, -26 + compress + wingFlap);
+    ctx.lineTo(-5, -14 + compress);
+    ctx.closePath();
+    ctx.fill();
+
+    // Patitas flexionadas o estiradas
+    ctx.fillStyle = '#7f1d1d';
+    if (inAir) {
+      ctx.fillRect(-6, -6, 4, 7);
+      ctx.fillRect(2, -6, 4, 7);
+    } else {
+      ctx.fillRect(-7, -4 + compress, 5, 4);
+      ctx.fillRect(2, -4 + compress, 5, 4);
+    }
+
+    // Cuerpo ágil rojo
+    ctx.fillStyle = '#ef4444';
+    ctx.strokeStyle = '#7f1d1d';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(0, -14 + compress, 10, 11 - compress * 0.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Cuernos afilados curvados hacia arriba
+    ctx.fillStyle = '#450a0a';
+    ctx.beginPath();
+    ctx.moveTo(-5, -23 + compress);
+    ctx.quadraticCurveTo(-10, -32 + compress, -6, -34 + compress);
+    ctx.lineTo(-1, -24 + compress);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(2, -24 + compress);
+    ctx.quadraticCurveTo(8, -32 + compress, 7, -34 + compress);
+    ctx.lineTo(6, -23 + compress);
+    ctx.closePath();
+    ctx.fill();
+
+    // Ojos pícaros
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.arc(1, -16 + compress, 2.5, 0, Math.PI * 2);
+    ctx.arc(6, -16 + compress, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.arc(2, -16 + compress, 1.2, 0, Math.PI * 2);
+    ctx.arc(7, -16 + compress, 1.2, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
@@ -1091,6 +1169,7 @@ class HopperBot {
 }
 
 class TurretSentry {
+  // Diablillo Escupe-Fuego sobre roca volcánica
   constructor(x, y, dir = -1) {
     this.x = x;
     this.y = y;
@@ -1111,9 +1190,9 @@ class TurretSentry {
         x: this.dir > 0 ? this.x + this.w : this.x - 12,
         y: this.y + 11,
         w: 14,
-        h: 6,
+        h: 14,
         vx: this.dir * 4.2,
-        color: '#ff0055'
+        color: '#ff4500'
       });
     }
   }
@@ -1121,53 +1200,72 @@ class TurretSentry {
   draw(ctx, camX, camY) {
     const px = this.x - camX;
     const py = this.y - camY;
-    ctx.save();
-    ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 14;
-
+    const facing = this.dir;
     const chargeRatio = Math.max(0, 1 - (this.shootTimer / 130));
 
-    // Base pesada blindada de torreta
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(px - 2, py + 20, this.w + 4, 12);
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(px - 2, py + 20, this.w + 4, 12);
-    // Pernos mecánicos
-    ctx.fillStyle = '#ffe600';
-    ctx.fillRect(px + 2, py + 26, 3, 3);
-    ctx.fillRect(px + this.w - 5, py + 26, 3, 3);
+    ctx.save();
+    ctx.translate(px + this.w / 2, py + this.h);
+    ctx.scale(facing, 1);
 
-    // Cúpula / Cabina giratoria
-    ctx.fillStyle = '#0f172a';
-    ctx.beginPath();
-    ctx.arc(px + this.w / 2, py + 14, 13, Math.PI, 0);
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
+    // Piedra volcánica
+    ctx.fillStyle = '#27272a';
+    ctx.fillRect(-15, -8, 30, 8);
+    ctx.strokeStyle = '#dc2626';
     ctx.lineWidth = 1.5;
+    ctx.strokeRect(-15, -8, 30, 8);
+    // Fisuras de magma
+    ctx.fillStyle = '#f97316';
+    ctx.fillRect(-10, -5, 6, 2);
+    ctx.fillRect(4, -4, 8, 2);
+
+    // Diablillo fornido
+    ctx.fillStyle = '#b91c1c';
+    ctx.strokeStyle = '#450a0a';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(0, -18, 12, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.stroke();
 
-    // Cañón doble de plasma telescópico
-    ctx.fillStyle = '#ff0055';
-    ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 10 + chargeRatio * 15;
-    const recoil = this.shootTimer > 120 ? 5 : 0;
-    if (this.dir < 0) {
-      ctx.fillRect(px - 12 + recoil, py + 7, 24, 7);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(px - 14 + recoil, py + 5, 4, 11); // Boca del cañón
-    } else {
-      ctx.fillRect(px + 20 - recoil, py + 7, 24, 7);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(px + 42 - recoil, py + 5, 4, 11);
+    // Cuernos anchos
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.moveTo(-6, -26);
+    ctx.lineTo(-12, -33);
+    ctx.lineTo(-2, -27);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(3, -27);
+    ctx.lineTo(10, -33);
+    ctx.lineTo(7, -26);
+    ctx.closePath();
+    ctx.fill();
+
+    // Boca llameante
+    ctx.fillStyle = chargeRatio > 0.7 ? '#fbbf24' : '#18181b';
+    ctx.beginPath();
+    ctx.arc(8, -17, 4 + chargeRatio * 2, 0, Math.PI * 2);
+    ctx.fill();
+    if (chargeRatio > 0.5) {
+      ctx.shadowColor = '#f97316';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#ff4500';
+      ctx.beginPath();
+      ctx.arc(10, -17, 3, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    // Núcleo central que se sobrecarga antes de disparar
-    ctx.fillStyle = chargeRatio > 0.8 ? '#ffe600' : '#00f0ff';
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.shadowBlur = 12;
+    // Ojos amenazantes
+    ctx.fillStyle = '#fef08a';
     ctx.beginPath();
-    ctx.arc(px + this.w / 2, py + 13, 5, 0, Math.PI * 2);
+    ctx.arc(4, -21, 2.5, 0, Math.PI * 2);
+    ctx.arc(9, -21, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#450a0a';
+    ctx.beginPath();
+    ctx.arc(5, -21, 1.2, 0, Math.PI * 2);
+    ctx.arc(10, -21, 1.2, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
@@ -1175,6 +1273,7 @@ class TurretSentry {
 }
 
 class HunterDrone {
+  // Diablillo Alado Volador
   constructor(x, y, distance = 160) {
     this.startX = x;
     this.startY = y;
@@ -1197,34 +1296,77 @@ class HunterDrone {
   draw(ctx, camX, camY) {
     const px = this.x - camX;
     const py = this.y - camY;
-    ctx.save();
-    // Brillo verde lima radioactivo ultra visible
-    ctx.shadowColor = '#00ff66';
-    ctx.shadowBlur = 14;
+    const wingFlap = Math.sin(Date.now() * 0.015) * 8;
 
-    // Alas afiladas fluorescentes
-    ctx.fillStyle = '#00ff66';
+    ctx.save();
+    ctx.translate(px + this.w / 2, py + this.h / 2);
+
+    // Alas de murciélago oscuras
+    ctx.fillStyle = '#27272a';
+    ctx.strokeStyle = '#dc2626';
+    ctx.lineWidth = 1.2;
+
+    // Ala izquierda
     ctx.beginPath();
-    ctx.moveTo(px + 15, py);
-    ctx.lineTo(px - 4, py + 12);
-    ctx.lineTo(px + 15, py + 20);
-    ctx.lineTo(px + 34, py + 12);
+    ctx.moveTo(-4, -2);
+    ctx.lineTo(-18, -14 + wingFlap);
+    ctx.lineTo(-12, 2);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Ojo cazador amarillo dorado
-    ctx.fillStyle = '#1e1b4b';
-    ctx.fillRect(px + 8, py + 7, 14, 10);
-    ctx.fillStyle = '#ffe600';
-    ctx.fillRect(px + 11, py + 9, 8, 6);
+    // Ala derecha
+    ctx.beginPath();
+    ctx.moveTo(4, -2);
+    ctx.lineTo(18, -14 - wingFlap);
+    ctx.lineTo(12, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Cuerpo volador rojo
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 9, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cuernitos
+    ctx.fillStyle = '#450a0a';
+    ctx.beginPath();
+    ctx.moveTo(-4, -7);
+    ctx.lineTo(-7, -13);
+    ctx.lineTo(-1, -7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(1, -7);
+    ctx.lineTo(6, -13);
+    ctx.lineTo(4, -7);
+    ctx.closePath();
+    ctx.fill();
+
+    // Ojos brillantes
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.arc(-2.5, -2, 2, 0, Math.PI * 2);
+    ctx.arc(3.5, -2, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Colita con punta de flecha
+    ctx.strokeStyle = '#b91c1c';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 6);
+    ctx.lineTo(-2, 12);
+    ctx.lineTo(4, 15);
+    ctx.stroke();
+
     ctx.restore();
   }
 }
 
 class ApexSentinel {
+  // Gran Archidiablo
   constructor(x, y) {
     this.x = x;
     this.y = y;
@@ -1274,9 +1416,9 @@ class ApexSentinel {
         x: this.facing > 0 ? this.x + this.w : this.x - 14,
         y: this.y + 14,
         w: 16,
-        h: 8,
+        h: 16,
         vx: this.facing * 5.2,
-        color: '#ffe600'
+        color: '#ff2200'
       });
     }
   }
@@ -1294,68 +1436,109 @@ class ApexSentinel {
     const px = this.x - camX;
     const py = this.y - camY;
     const timeSec = Date.now() * 0.005;
+    const legWalk = Math.sin(timeSec * 6) * 3;
+
     ctx.save();
-    ctx.shadowColor = '#ff0055';
-    ctx.shadowBlur = 18;
+    ctx.translate(px + this.w / 2, py + this.h);
+    ctx.scale(this.facing, 1);
 
-    const isCharging = this.chargeTimer < 35;
-    const legWalk = Math.sin(timeSec * 6) * 4;
+    // Sombra amenazante
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 16, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Patas mecánicas pesadas bípedas
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(px + 4 + legWalk, py + 34, 10, 10);
-    ctx.fillRect(px + this.w - 14 - legWalk, py + 34, 10, 10);
-    ctx.fillStyle = '#ff0055';
-    ctx.fillRect(px + 4 + legWalk, py + 42, 10, 2);
-    ctx.fillRect(px + this.w - 14 - legWalk, py + 42, 10, 2);
+    // Capa andrajosa oscura en la espalda
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.moveTo(-8, -32);
+    ctx.lineTo(-18, -4 + legWalk);
+    ctx.lineTo(0, -10);
+    ctx.closePath();
+    ctx.fill();
 
-    // Chasis blindado rojo carmesí de alto contraste
-    ctx.fillStyle = '#be123c';
-    ctx.fillRect(px, py + 8, this.w, 28);
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(px, py + 8, this.w, 28);
+    // Patas con pezuñas oscuras
+    ctx.fillStyle = '#450a0a';
+    ctx.fillRect(-10, -8 + legWalk, 7, 8);
+    ctx.fillRect(3, -8 - legWalk, 7, 8);
 
-    // Placas de armadura dorada reforzada
-    ctx.fillStyle = '#ffe600';
-    ctx.shadowColor = '#ffe600';
-    ctx.shadowBlur = 6;
-    ctx.fillRect(px + 4, py + 11, this.w - 8, 8);
-    ctx.fillRect(px + 6, py + 22, this.w - 12, 10);
+    // Cuerpo macizo del Archidiablo
+    ctx.fillStyle = '#991b1b';
+    ctx.strokeStyle = '#450a0a';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.ellipse(0, -22, 15, 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
 
-    // Cañón de hombro con aviso luminoso
-    ctx.fillStyle = '#1e293b';
-    const cannonX = this.facing > 0 ? px + this.w - 6 : px - 6;
-    ctx.fillRect(cannonX, py + 4, 12, 6);
-    if (isCharging) {
-      ctx.fillStyle = '#ffe600';
-      ctx.shadowColor = '#ffe600';
-      ctx.shadowBlur = 14;
-      ctx.fillRect(this.facing > 0 ? px + this.w + 4 : px - 10, py + 3, 5, 8);
-    }
+    // Pecho rojo oscuro
+    ctx.fillStyle = '#b91c1c';
+    ctx.beginPath();
+    ctx.ellipse(2, -22, 9, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Corona cibernética con LEDs de alerta
+    // Gran cornamenta infernal
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.moveTo(-7, -34);
+    ctx.quadraticCurveTo(-18, -46, -12, -48);
+    ctx.quadraticCurveTo(-10, -42, -2, -35);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(3, -35);
+    ctx.quadraticCurveTo(15, -46, 11, -48);
+    ctx.quadraticCurveTo(7, -42, 6, -34);
+    ctx.closePath();
+    ctx.fill();
+
+    // Ojos encendidos en cólera
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath();
+    ctx.arc(3, -27, 3, 0, Math.PI * 2);
+    ctx.arc(9, -27, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7f1d1d';
+    ctx.beginPath();
+    ctx.arc(4, -27, 1.5, 0, Math.PI * 2);
+    ctx.arc(10, -27, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Colmillos
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(px + 2, py, 7, 8);
-    ctx.fillRect(px + this.w - 9, py, 7, 8);
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillRect(px + 4, py + 2, 3, 4);
-    ctx.fillRect(px + this.w - 7, py + 2, 3, 4);
+    ctx.beginPath();
+    ctx.moveTo(3, -18);
+    ctx.lineTo(5, -18);
+    ctx.lineTo(4, -13);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(8, -18);
+    ctx.lineTo(10, -18);
+    ctx.lineTo(9, -13);
+    ctx.closePath();
+    ctx.fill();
 
-    // Visor central cian intenso amenazante
-    ctx.fillStyle = isCharging ? '#ffe600' : '#00f0ff';
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.shadowBlur = 12;
-    const eyeOffset = this.facing > 0 ? 16 : 4;
-    ctx.fillRect(px + eyeOffset, py + 12, 14, 6);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(px + eyeOffset + 2, py + 13, 4, 2);
+    // Tridente ardiente
+    ctx.strokeStyle = '#18181b';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(13, -6);
+    ctx.lineTo(13, -38);
+    ctx.stroke();
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.moveTo(9, -38);
+    ctx.lineTo(17, -38);
+    ctx.lineTo(13, -45);
+    ctx.closePath();
+    ctx.fill();
 
     ctx.restore();
   }
 }
 
-// ==========================================
 // 5. DEFINICIÓN DE LOS 5 NIVELES
 // ==========================================
 function buildLevels() {
@@ -2409,7 +2592,7 @@ class Game {
     this.ctx.fillStyle = '#00f0ff';
     this.ctx.shadowColor = '#00f0ff';
     this.ctx.shadowBlur = 25;
-    this.ctx.fillText('CYBER SURGE', this.width / 2, 160);
+    this.ctx.fillText('EL BEATO PEDRO VS MAL', this.width / 2, 160);
     // Dibujo del personaje en pantalla de inicio con halo sagrado
     if (priestImage.complete && priestImage.naturalWidth > 0) {
       this.ctx.save();
@@ -2423,20 +2606,20 @@ class Game {
     this.ctx.fillStyle = '#ff0055';
     this.ctx.shadowColor = '#ff0055';
     this.ctx.shadowBlur = 15;
-    this.ctx.fillText('MISIÓN SACERDOTAL: PROTOCOL ZERO', this.width / 2, 205);
+    this.ctx.fillText('EL BEATO PEDRO VS LAS FUERZAS DEL MAL', this.width / 2, 205);
 
     this.ctx.font = '16px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#e2e8f0';
     this.ctx.shadowBlur = 0;
-    this.ctx.fillText('Supera los 5 sectores y purga los drones pisándolos.', this.width / 2, 265);
-    this.ctx.fillText('Sector 1: Drones de patrulla | Sector 2: Acid Foundry (¡Desbloquea Sombrero Bumerán!)', this.width / 2, 295);
-    this.ctx.fillText('Sector 3: Láseres & Torretas | Sector 4: Avispones | Sector 5: Apex Sentinels', this.width / 2, 325);
+    this.ctx.fillText('Guía al Beato Pedro a través de los 5 sectores y aplasta a los diablillos pisándolos.', this.width / 2, 265);
+    this.ctx.fillText('Fase 1: Diablillos Patrulleros | Fase 2: El Foso (¡Consigue el Sombrero Negro!)', this.width / 2, 295);
+    this.ctx.fillText('Fase 3: Diablillos Escupe-Fuego | Fase 4: Diablillos Alados | Fase 5: El Gran Archidiablo', this.width / 2, 325);
 
     this.ctx.font = 'bold 15px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#ffe600';
     this.ctx.shadowColor = '#ffe600';
     this.ctx.shadowBlur = 8;
-    this.ctx.fillText('👒 HABILIDAD SAGRADA (FASE 2+): Pulsa [ J ], [ F ] o [ 👒 ] para lanzar tu sombrero bumerán', this.width / 2, 365);
+    this.ctx.fillText('👒 PODER DEL SOMBRERO (FASE 2+): Tras conseguir el sombrero negro en la Fase 2, lánzalo con [ J ], [ F ] o [ 👒 ]', this.width / 2, 365);
 
     this.ctx.font = '14px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#a4b3d6';
@@ -2515,7 +2698,7 @@ class Game {
     this.ctx.fillStyle = '#00f0ff';
     this.ctx.shadowColor = '#00f0ff';
     this.ctx.shadowBlur = 10;
-    this.ctx.fillText('El Sacerdote ha purificado todos los sectores de la red central.', this.width / 2, 255);
+    this.ctx.fillText('El Beato Pedro ha derrotado a todos los diablillos y desterrado al Mal.', this.width / 2, 255);
 
     this.ctx.font = 'bold 24px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#ffe600';
