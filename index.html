@@ -219,6 +219,7 @@
       margin-bottom: 16px;
       flex-grow: 1;
     }
+    .mode-card * { pointer-events: none; }
     .btn-select-mode {
       width: 100%;
       padding: 10px;
@@ -2232,8 +2233,7 @@ class PlatformerGame {
     this.transitionTimer = 0;
     this.deathTimer = 0;
 
-    this.camWx = this.currentScenario.spawnX;
-    this.camWy = this.currentScenario.spawnY;
+    this.camera = { x: 0, y: 0 };
 
     this.setupInputs();
     this.loadLevel(0);
@@ -4397,173 +4397,192 @@ function drawSceneryObject(ctx, obj, camX, camY) {
   ctx.restore();
 }
 
-function buildRPGWorld() {
-  const scenarios = {
-    aldea: {
-      id: 'aldea',
-      name: 'La Aldea de la Paz',
-      subtitle: 'Comienza tu viaje espiritual',
-      w: 20,
-      h: 20,
-      spawnX: 3.5,
-      spawnY: 10.0,
-      groundType: 'stone',
-      scenery: [
-        { type: 'fountain', wx: 10, wy: 10 },
-        { type: 'house', wx: 4, wy: 4 },
-        { type: 'house', wx: 15, wy: 4 },
-        { type: 'house', wx: 4, wy: 15 },
-        { type: 'tree_oak', wx: 2, wy: 2 },
-        { type: 'tree_oak', wx: 17, wy: 2 },
-        { type: 'tree_oak', wx: 2, wy: 17 },
-        { type: 'tree_oak', wx: 14, wy: 16 },
-        { type: 'fence_wood', wx: 6, wy: 6 },
-        { type: 'fence_wood', wx: 13, wy: 6 },
-        { type: 'fence_wood', wx: 6, wy: 13 },
-        { type: 'lamp_gold', wx: 8, wy: 8 },
-        { type: 'lamp_gold', wx: 12, wy: 12 }
-      ],
-      hearts: [
-        { id: 'h1', wx: 4, wy: 9 },
-        { id: 'h2', wx: 16, wy: 16 },
-        { id: 'h3', wx: 10, wy: 5 }
-      ],
-      diablillos: [
-        { type: 'travieso', wx: 7, wy: 12 },
-        { type: 'travieso', wx: 14, wy: 8 },
-        { type: 'travieso', wx: 12, wy: 16 }
-      ],
-      exits: [
-        { to: 'bosque', minX: 18.2, maxX: 20, minY: 8.5, maxY: 12.5, spawnX: 1.5, spawnY: 10.5, label: 'Al Bosque de las Tentaciones ➔' }
-      ]
-    },
 
-    bosque: {
-      id: 'bosque',
-      name: 'El Bosque de las Tentaciones',
-      subtitle: 'Los diablillos acechadores merodean entre la espesura',
-      w: 22,
-      h: 22,
-      spawnX: 1.5,
-      spawnY: 10.5,
-      groundType: 'forest',
-      scenery: [
-        { type: 'tree_pine', wx: 3, wy: 3 },
-        { type: 'tree_pine', wx: 7, wy: 4 },
-        { type: 'tree_pine', wx: 14, wy: 3 },
-        { type: 'tree_pine', wx: 18, wy: 4 },
-        { type: 'tree_oak', wx: 4, wy: 10 },
-        { type: 'tree_oak', wx: 17, wy: 10 },
-        { type: 'tree_pine', wx: 4, wy: 18 },
-        { type: 'tree_pine', wx: 18, wy: 18 },
-        { type: 'tree_oak', wx: 10, wy: 11 },
-        { type: 'fence_wood', wx: 8, wy: 17 },
-        { type: 'fence_wood', wx: 13, wy: 17 }
-      ],
-      hearts: [
-        { id: 'h4', wx: 5, wy: 5 },
-        { id: 'h5', wx: 17, wy: 5 },
-        { id: 'h6', wx: 6, wy: 16 },
-        { id: 'h7', wx: 16, wy: 16 }
-      ],
-      diablillos: [
-        { type: 'acechador', wx: 8, wy: 7 },
-        { type: 'acechador', wx: 15, wy: 8 },
-        { type: 'acechador', wx: 8, wy: 14 },
-        { type: 'acechador', wx: 15, wy: 14 }
-      ],
-      exits: [
-        { to: 'aldea', minX: 0, maxX: 1.2, minY: 8.5, maxY: 12.5, spawnX: 18.0, spawnY: 10.5, label: '⬅ A la Aldea de la Paz' },
-        { to: 'cementerio', minX: 9.0, maxX: 13.0, minY: 0, maxY: 1.2, spawnX: 11.0, spawnY: 19.5, label: 'Al Cementerio de las Sombras ⬆' }
-      ]
-    },
+// ==========================================
+// 7. MUNDO CONTINUO ISOMÉTRICO (SEAMLESS SCROLLING WORLD)
+// ==========================================
 
-    cementerio: {
-      id: 'cementerio',
-      name: 'El Cementerio de las Sombras',
-      subtitle: 'Cuidado con las bolas de fuego de los hechiceros',
-      w: 22,
-      h: 22,
-      spawnX: 11.0,
-      spawnY: 19.5,
-      groundType: 'graveyard',
-      scenery: [
-        { type: 'crypt', wx: 5, wy: 5 },
-        { type: 'crypt', wx: 17, wy: 5 },
-        { type: 'tombstone', wx: 4, wy: 11 },
-        { type: 'tombstone', wx: 6, wy: 11 },
-        { type: 'tombstone', wx: 15, wy: 11 },
-        { type: 'tombstone', wx: 17, wy: 11 },
-        { type: 'tombstone', wx: 5, wy: 16 },
-        { type: 'tombstone', wx: 17, wy: 16 },
-        { type: 'tree_dead', wx: 2, wy: 2 },
-        { type: 'tree_dead', wx: 19, wy: 2 },
-        { type: 'tree_dead', wx: 10, wy: 8 },
-        { type: 'tree_dead', wx: 2, wy: 19 },
-        { type: 'tree_dead', wx: 19, wy: 19 }
-      ],
-      hearts: [
-        { id: 'h8', wx: 5, wy: 7 },
-        { id: 'h9', wx: 17, wy: 7 },
-        { id: 'h10', wx: 5, wy: 14 },
-        { id: 'h11', wx: 16, wy: 14 }
-      ],
-      diablillos: [
-        { type: 'hechicero', wx: 7, wy: 7 },
-        { type: 'hechicero', wx: 14, wy: 7 },
-        { type: 'hechicero', wx: 7, wy: 13 },
-        { type: 'hechicero', wx: 14, wy: 13 }
-      ],
-      exits: [
-        { to: 'bosque', minX: 9.0, maxX: 13.0, minY: 20.8, maxY: 22, spawnX: 11.0, spawnY: 2.0, label: '⬇ Al Bosque de las Tentaciones' },
-        { to: 'iglesia', minX: 20.8, maxX: 22, minY: 8.5, maxY: 12.5, spawnX: 1.5, spawnY: 11.0, label: 'A la Colina de la Gran Iglesia ➔' }
-      ]
+function buildContinuousWorld() {
+  const world = {
+    minWx: 0,
+    maxWx: 86,
+    minWy: -25,
+    maxWy: 25,
+    spawnX: 4.5,
+    spawnY: 12.0,
+    churchPortal: {
+      wx: 74.0,
+      wy: -13.5,
+      requiredHearts: 12
     },
-
-    iglesia: {
-      id: 'iglesia',
-      name: 'La Colina de la Gran Iglesia',
-      subtitle: 'Encuentra las puertas del santuario y conságralo',
-      w: 24,
-      h: 24,
-      spawnX: 1.5,
-      spawnY: 11.0,
-      groundType: 'church',
-      scenery: [
-        { type: 'church_cathedral', wx: 12, wy: 5 },
-        { type: 'lamp_gold', wx: 8, wy: 8 },
-        { type: 'lamp_gold', wx: 16, wy: 8 },
-        { type: 'lamp_gold', wx: 8, wy: 14 },
-        { type: 'lamp_gold', wx: 16, wy: 14 },
-        { type: 'tree_oak', wx: 3, wy: 4 },
-        { type: 'tree_oak', wx: 21, wy: 4 },
-        { type: 'tree_oak', wx: 3, wy: 19 },
-        { type: 'tree_oak', wx: 21, wy: 19 }
-      ],
-      hearts: [
-        { id: 'h12', wx: 4, wy: 8 },
-        { id: 'h13', wx: 20, wy: 8 },
-        { id: 'h14', wx: 6, wy: 18 },
-        { id: 'h15', wx: 18, wy: 18 }
-      ],
-      diablillos: [
-        { type: 'archidiablillo', wx: 8, wy: 11 },
-        { type: 'archidiablillo', wx: 16, wy: 11 },
-        { type: 'archidiablillo', wx: 12, wy: 16 }
-      ],
-      exits: [
-        { to: 'cementerio', minX: 0, maxX: 1.2, minY: 8.5, maxY: 12.5, spawnX: 20.0, spawnY: 11.0, label: '⬅ Al Cementerio de las Sombras' }
-      ],
-      churchPortal: {
-        wx: 12.0,
-        wy: 6.2,
-        requiredHearts: 12
+    zones: {
+      aldea: {
+        name: 'La Aldea de la Paz',
+        subtitle: 'Un apacible pueblo donde comienza tu peregrinación'
+      },
+      bosque: {
+        name: 'El Bosque de las Tentaciones',
+        subtitle: 'Frondosos senderos custodiados por diablillos acechadores'
+      },
+      cementerio: {
+        name: 'El Cementerio de las Sombras',
+        subtitle: 'Lápidas y criptas ancestrales con hechiceros oscuros'
+      },
+      iglesia: {
+        name: 'La Colina de la Gran Iglesia',
+        subtitle: 'La sagrada catedral que debe ser consagrada'
       }
-    }
+    },
+    scenery: [
+      // --- LA ALDEA ---
+      { type: 'fountain', wx: 12, wy: 12 },
+      { type: 'house', wx: 6, wy: 5 },
+      { type: 'house', wx: 18, wy: 5 },
+      { type: 'house', wx: 6, wy: 19 },
+      { type: 'tree_oak', wx: 2, wy: 2 },
+      { type: 'tree_oak', wx: 20, wy: 2 },
+      { type: 'tree_oak', wx: 2, wy: 22 },
+      { type: 'tree_oak', wx: 16, wy: 21 },
+      { type: 'fence_wood', wx: 8, wy: 7 },
+      { type: 'fence_wood', wx: 15, wy: 7 },
+      { type: 'fence_wood', wx: 8, wy: 16 },
+      { type: 'lamp_gold', wx: 10, wy: 10 },
+      { type: 'lamp_gold', wx: 14, wy: 14 },
+      // Camino de conexión Aldea -> Bosque
+      { type: 'lamp_gold', wx: 24, wy: 10 },
+      { type: 'lamp_gold', wx: 24, wy: 14 },
+
+      // --- EL BOSQUE ---
+      { type: 'tree_pine', wx: 30, wy: 4 },
+      { type: 'tree_pine', wx: 36, wy: 5 },
+      { type: 'tree_pine', wx: 46, wy: 4 },
+      { type: 'tree_pine', wx: 52, wy: 5 },
+      { type: 'tree_oak', wx: 32, wy: 11 },
+      { type: 'tree_oak', wx: 50, wy: 11 },
+      { type: 'tree_pine', wx: 30, wy: 20 },
+      { type: 'tree_pine', wx: 52, wy: 20 },
+      { type: 'tree_oak', wx: 41, wy: 12 },
+      { type: 'fence_wood', wx: 34, wy: 18 },
+      { type: 'fence_wood', wx: 48, wy: 18 },
+      // Camino de conexión Bosque -> Cementerio
+      { type: 'tree_pine', wx: 36, wy: 0 },
+      { type: 'tree_pine', wx: 46, wy: 0 },
+
+      // --- EL CEMENTERIO ---
+      { type: 'crypt', wx: 34, wy: -20 },
+      { type: 'crypt', wx: 50, wy: -20 },
+      { type: 'tombstone', wx: 33, wy: -14 },
+      { type: 'tombstone', wx: 35, wy: -14 },
+      { type: 'tombstone', wx: 48, wy: -14 },
+      { type: 'tombstone', wx: 50, wy: -14 },
+      { type: 'tombstone', wx: 34, wy: -9 },
+      { type: 'tombstone', wx: 49, wy: -9 },
+      { type: 'tree_dead', wx: 30, wy: -22 },
+      { type: 'tree_dead', wx: 53, wy: -22 },
+      { type: 'tree_dead', wx: 41, wy: -17 },
+      { type: 'tree_dead', wx: 30, wy: -6 },
+      { type: 'tree_dead', wx: 53, wy: -6 },
+      // Camino de conexión Cementerio -> Colina de la Iglesia
+      { type: 'lamp_gold', wx: 54, wy: -15 },
+      { type: 'lamp_gold', wx: 54, wy: -11 },
+
+      // --- LA COLINA DE LA GRAN IGLESIA ---
+      { type: 'church_cathedral', wx: 74, wy: -14 },
+      { type: 'lamp_gold', wx: 62, wy: -16 },
+      { type: 'lamp_gold', wx: 62, wy: -10 },
+      { type: 'lamp_gold', wx: 70, wy: -16 },
+      { type: 'lamp_gold', wx: 70, wy: -10 },
+      { type: 'tree_oak', wx: 60, wy: -22 },
+      { type: 'tree_oak', wx: 82, wy: -22 },
+      { type: 'tree_oak', wx: 60, wy: -2 },
+      { type: 'tree_oak', wx: 82, wy: -2 }
+    ],
+
+    hearts: [
+      // Aldea (3)
+      { id: 'h1', wx: 6, wy: 11 },
+      { id: 'h2', wx: 18, wy: 18 },
+      { id: 'h3', wx: 12, wy: 6 },
+      // Bosque (4)
+      { id: 'h4', wx: 34, wy: 6 },
+      { id: 'h5', wx: 48, wy: 6 },
+      { id: 'h6', wx: 34, wy: 18 },
+      { id: 'h7', wx: 48, wy: 18 },
+      // Cementerio (4)
+      { id: 'h8', wx: 34, wy: -16 },
+      { id: 'h9', wx: 50, wy: -16 },
+      { id: 'h10', wx: 37, wy: -8 },
+      { id: 'h11', wx: 47, wy: -8 },
+      // Colina de la Iglesia (4)
+      { id: 'h12', wx: 64, wy: -18 },
+      { id: 'h13', wx: 78, wy: -18 },
+      { id: 'h14', wx: 64, wy: -6 },
+      { id: 'h15', wx: 78, wy: -6 }
+    ],
+
+    diablillos: [
+      // Aldea: Traviesos (Tier 1)
+      { type: 'travieso', wx: 9, wy: 12 },
+      { type: 'travieso', wx: 16, wy: 9 },
+      { type: 'travieso', wx: 13, wy: 17 },
+      // Bosque: Acechadores (Tier 2)
+      { type: 'acechador', wx: 35, wy: 8 },
+      { type: 'acechador', wx: 46, wy: 8 },
+      { type: 'acechador', wx: 36, wy: 15 },
+      { type: 'acechador', wx: 47, wy: 15 },
+      // Cementerio: Hechiceros con Fuego (Tier 3)
+      { type: 'hechicero', wx: 36, wy: -18 },
+      { type: 'hechicero', wx: 48, wy: -18 },
+      { type: 'hechicero', wx: 37, wy: -11 },
+      { type: 'hechicero', wx: 47, wy: -11 },
+      // Colina: Archidiablillos veloces (Tier 4)
+      { type: 'archidiablillo', wx: 66, wy: -16 },
+      { type: 'archidiablillo', wx: 66, wy: -10 },
+      { type: 'archidiablillo', wx: 72, wy: -7 }
+    ]
   };
 
-  return scenarios;
+  return world;
 }
+
+function getContinuousGroundTile(x, y) {
+  // 1. Aldea
+  if (x <= 24 && y >= 0 && y <= 24) {
+    if (x >= 22 && y >= 10 && y <= 14) return 'road_stone';
+    return 'stone';
+  }
+  // Camino Aldea -> Bosque
+  if (x > 24 && x < 28 && y >= 10 && y <= 14) {
+    return 'road_stone';
+  }
+  // 2. Bosque
+  if (x >= 28 && x <= 54 && y >= 0 && y <= 24) {
+    if (x >= 39 && x <= 43 && y <= 3) return 'road_forest';
+    return 'forest';
+  }
+  // Camino Bosque -> Cementerio
+  if (x >= 39 && x <= 43 && y >= -4 && y < 0) {
+    return 'road_forest';
+  }
+  // 3. Cementerio
+  if (x >= 28 && x <= 54 && y >= -24 && y < -4) {
+    if (x >= 51 && y >= -15 && y <= -11) return 'road_slate';
+    return 'graveyard';
+  }
+  // Camino Cementerio -> Colina Iglesia
+  if (x > 54 && x < 58 && y >= -15 && y <= -11) {
+    return 'road_slate';
+  }
+  // 4. Colina de la Gran Iglesia
+  if (x >= 58 && x <= 84 && y >= -24 && y <= 0) {
+    if (x >= 60 && x <= 76 && y >= -14 && y <= -12) return 'church_carpet';
+    return 'church';
+  }
+
+  // Border boundary / impassable ground
+  return 'boundary';
+}
+
 
 class IsometricRPGGame {
   constructor(soundEngine, priestImage) {
@@ -4582,25 +4601,26 @@ class IsometricRPGGame {
       right: false
     };
 
-    this.scenarios = buildRPGWorld();
-    this.currentScenarioId = 'aldea';
-    this.currentScenario = this.scenarios[this.currentScenarioId];
+    this.world = buildContinuousWorld();
+    this.zones = this.world.zones;
+    this.currentZoneId = 'aldea';
 
     this.collectedHeartIds = new Set();
     this.totalHeartsCount = 15;
 
-    this.player = new RPGPlayer(this.currentScenario.spawnX, this.currentScenario.spawnY);
+    this.player = new RPGPlayer(this.world.spawnX, this.world.spawnY);
     this.particles = new RPGParticleSystem();
     this.fireballs = [];
 
-    this.camX = 0;
-    this.camY = 0;
+    // Camera smoothly follows player in world coordinates
+    this.camWx = this.world.spawnX;
+    this.camWy = this.world.spawnY;
 
     this.active = true;
-    this.state = 'PLAYING'; // 'PLAYING', 'GAME_OVER', 'VICTORY'
-    this.bannerText = '';
-    this.bannerSubtitle = '';
-    this.bannerTimer = 0;
+    this.state = 'PLAYING';
+    this.bannerText = this.zones.aldea.name;
+    this.bannerSubtitle = this.zones.aldea.subtitle;
+    this.bannerTimer = 180;
 
     this.promptMessage = '';
     this.promptTimer = 0;
@@ -4611,8 +4631,9 @@ class IsometricRPGGame {
     this.hearts = [];
     this.diablillos = [];
 
-    this.initScenario(this.currentScenarioId);
-    if (this.soundEngine) this.soundEngine.startRPGBGM(this.currentScenarioId);
+    this.initWorld();
+
+    if (this.soundEngine) this.soundEngine.startRPGBGM('aldea');
 
     this.loop = this.loop.bind(this);
     this.animId = requestAnimationFrame(this.loop);
@@ -4625,31 +4646,21 @@ class IsometricRPGGame {
     if (this.soundEngine) this.soundEngine.stopBGM();
   }
 
-  initScenario(scenarioId, spawnAtX = null, spawnAtY = null) {
-    this.currentScenarioId = scenarioId;
-    this.currentScenario = this.scenarios[scenarioId];
-
-    if (spawnAtX !== null && spawnAtY !== null) {
-      this.player.wx = spawnAtX;
-      this.player.wy = spawnAtY;
-    } else {
-      this.player.wx = this.currentScenario.spawnX;
-      this.player.wy = this.currentScenario.spawnY;
-    }
-
+  initWorld() {
     this.obstacles.clear();
-    // Build border collision
-    for (let x = -1; x <= this.currentScenario.w; x++) {
-      this.obstacles.add(x + ',-1');
-      this.obstacles.add(x + ',' + this.currentScenario.h);
-    }
-    for (let y = -1; y <= this.currentScenario.h; y++) {
-      this.obstacles.add('-1,' + y);
-      this.obstacles.add(this.currentScenario.w + ',' + y);
+
+    // Map bounds impassable obstacles
+    for (let x = this.world.minWx - 4; x <= this.world.maxWx + 4; x++) {
+      for (let y = this.world.minWy - 4; y <= this.world.maxWy + 4; y++) {
+        const tileType = getContinuousGroundTile(x, y);
+        if (tileType === 'boundary') {
+          this.obstacles.add(x + ',' + y);
+        }
+      }
     }
 
     // Scenery obstacles
-    for (const obj of this.currentScenario.scenery) {
+    for (const obj of this.world.scenery) {
       if (obj.type === 'house') {
         this.obstacles.add(Math.floor(obj.wx) + ',' + Math.floor(obj.wy));
         this.obstacles.add((Math.floor(obj.wx) + 1) + ',' + Math.floor(obj.wy));
@@ -4662,47 +4673,29 @@ class IsometricRPGGame {
         this.obstacles.add(Math.floor(obj.wx) + ',' + Math.floor(obj.wy));
         this.obstacles.add((Math.floor(obj.wx) + 1) + ',' + Math.floor(obj.wy));
       } else if (obj.type === 'church_cathedral') {
-        for (let cx = 8; cx <= 16; cx++) {
-          for (let cy = 2; cy <= 5; cy++) {
+        for (let cx = Math.floor(obj.wx - 4); cx <= Math.ceil(obj.wx + 4); cx++) {
+          for (let cy = Math.floor(obj.wy - 2); cy <= Math.ceil(obj.wy + 1); cy++) {
             this.obstacles.add(cx + ',' + cy);
           }
         }
       }
     }
 
-    // Remove obstacles at exits
-    for (const exit of this.currentScenario.exits) {
-      for (let x = Math.floor(exit.minX); x <= Math.ceil(exit.maxX); x++) {
-        for (let y = Math.floor(exit.minY); y <= Math.ceil(exit.maxY); y++) {
-          this.obstacles.delete(x + ',' + y);
-        }
-      }
-    }
-
-    // Load uncollected hearts
+    // Load 15 Sacred Hearts
     this.hearts = [];
-    for (const h of this.currentScenario.hearts) {
+    for (const h of this.world.hearts) {
       if (!this.collectedHeartIds.has(h.id)) {
-        this.hearts.push(new RPGHeart(h.id, h.wx, h.wy, this.currentScenarioId));
+        this.hearts.push(new RPGHeart(h.id, h.wx, h.wy, 'world'));
       }
     }
 
-    // Load diablillos
+    // Load Diablillos
     this.diablillos = [];
-    for (const d of this.currentScenario.diablillos) {
-      this.diablillos.push(new RPGDiablillo(d.type, d.wx, d.wy, this.currentScenarioId));
+    for (const d of this.world.diablillos) {
+      this.diablillos.push(new RPGDiablillo(d.type, d.wx, d.wy, 'world'));
     }
 
     this.fireballs = [];
-
-    // Trigger scenario banner
-    this.bannerText = this.currentScenario.name;
-    this.bannerSubtitle = this.currentScenario.subtitle;
-    this.bannerTimer = 180; // 3 seconds
-
-    // Initial camera snap
-    this.camWx = this.player.wx;
-    this.camWy = this.player.wy;
   }
 
   showPrompt(msg, duration = 180) {
@@ -4721,22 +4714,45 @@ class IsometricRPGGame {
     // Update player
     this.player.update(this.input, this.obstacles, this.particles);
 
-    // Camera smoothly follows player in world coordinates
+    // Continuous camera follow smoothly
     this.camWx += (this.player.wx - this.camWx) * 0.12;
     this.camWy += (this.player.wy - this.camWy) * 0.12;
 
-    // Update hearts & collection check
+    // Seamless Zone Detection across the continuous world
+    let currentZone = 'aldea';
+    if (this.player.wx <= 26) {
+      currentZone = 'aldea';
+    } else if (this.player.wy >= -2) {
+      currentZone = 'bosque';
+    } else if (this.player.wx < 56) {
+      currentZone = 'cementerio';
+    } else {
+      currentZone = 'iglesia';
+    }
+
+    if (currentZone !== this.currentZoneId) {
+      this.currentZoneId = currentZone;
+      const zoneInfo = this.zones[currentZone];
+      this.bannerText = zoneInfo.name;
+      this.bannerSubtitle = zoneInfo.subtitle;
+      this.bannerTimer = 180;
+      if (this.soundEngine) {
+        this.soundEngine.startRPGBGM(currentZone);
+      }
+    }
+
+    // Update hearts collection
     for (let i = this.hearts.length - 1; i >= 0; i--) {
       const h = this.hearts[i];
       h.update(this.particles);
 
       const dist = Math.hypot(h.wx - this.player.wx, h.wy - this.player.wy);
-      if (dist < 0.8) {
+      if (dist < 0.85) {
         this.collectedHeartIds.add(h.id);
         this.hearts.splice(i, 1);
         if (this.soundEngine) this.soundEngine.playHeartCollect();
-        this.particles.emit(this.player.wx, this.player.wy, '#ffd700', 16, 0.08, 30, 3, 'star');
-        this.showPrompt(`¡Corazón Sagrado recogido! (${this.collectedHeartIds.size}/${this.totalHeartsCount})`, 100);
+        this.particles.emit(this.player.wx, this.player.wy, '#ffd700', 18, 0.09, 32, 3, 'star');
+        this.showPrompt(`¡Corazón Sagrado recogido! (${this.collectedHeartIds.size}/${this.totalHeartsCount})`, 110);
       }
     }
 
@@ -4745,7 +4761,6 @@ class IsometricRPGGame {
       const fb = this.fireballs[i];
       fb.update(this.obstacles, this.particles);
 
-      // Hit player check
       const dist = Math.hypot(fb.wx - this.player.wx, fb.wy - this.player.wy);
       if (dist < 0.7) {
         fb.isDead = true;
@@ -4753,9 +4768,12 @@ class IsometricRPGGame {
         if (damaged) {
           this.damageFlashTimer = 14;
           if (window.shaderPipeline) window.shaderPipeline.triggerDamage();
-        }
-        if (this.player.lives <= 0) {
-          this.state = 'GAME_OVER';
+          if (this.player.lives <= 0) {
+            this.state = 'GAME_OVER';
+            if (this.soundEngine && typeof this.soundEngine.playGameOver === 'function') {
+              this.soundEngine.playGameOver();
+            }
+          }
         }
       }
 
@@ -4766,61 +4784,48 @@ class IsometricRPGGame {
 
     // Update diablillos
     for (const d of this.diablillos) {
-      d.update(this.player, this.obstacles, this.fireballs, this.particles, this.soundEngine);
+      // Only process diablillos within active range of player for max performance
+      const distToPlayer = Math.hypot(d.wx - this.player.wx, d.wy - this.player.wy);
+      if (distToPlayer < 14) {
+        d.update(this.player, this.obstacles, this.fireballs, this.particles, this.soundEngine);
 
-      // Hit player check
-      const dist = Math.hypot(d.wx - this.player.wx, d.wy - this.player.wy);
-      if (dist < 0.75) {
-        const damaged = this.player.takeDamage(1, d.wx, d.wy, this.soundEngine, this.particles);
-        if (damaged) {
-          this.damageFlashTimer = 14;
-          if (window.shaderPipeline) window.shaderPipeline.triggerDamage();
-        }
-        if (damaged && this.player.lives <= 0) {
-          this.state = 'GAME_OVER';
+        if (distToPlayer < 0.75) {
+          const damaged = this.player.takeDamage(1, d.wx, d.wy, this.soundEngine, this.particles);
+          if (damaged) {
+            this.damageFlashTimer = 14;
+            if (window.shaderPipeline) window.shaderPipeline.triggerDamage();
+            if (this.player.lives <= 0) {
+              this.state = 'GAME_OVER';
+              if (this.soundEngine && typeof this.soundEngine.playGameOver === 'function') {
+                this.soundEngine.playGameOver();
+              }
+            }
+          }
         }
       }
     }
 
     this.particles.update();
 
-    // Check Scenario Exits
-    for (const exit of this.currentScenario.exits) {
-      if (
-        this.player.wx >= exit.minX &&
-        this.player.wx <= exit.maxX &&
-        this.player.wy >= exit.minY &&
-        this.player.wy <= exit.maxY
-      ) {
-        this.initScenario(exit.to, exit.spawnX, exit.spawnY);
-        if (this.soundEngine) this.soundEngine.startRPGBGM(exit.to);
-        break;
-      }
-    }
+    // Check Church Portal
+    const portal = this.world.churchPortal;
+    const pDist = Math.hypot(this.player.wx - portal.wx, this.player.wy - portal.wy);
 
-    // Check Church Portal in 'iglesia'
-    if (this.currentScenario.churchPortal) {
-      const portal = this.currentScenario.churchPortal;
-      const pDist = Math.hypot(this.player.wx - portal.wx, this.player.wy - portal.wy);
-
-      if (pDist < 1.4) {
-        if (this.collectedHeartIds.size >= portal.requiredHearts) {
-          // CONSECRATION VICTORY!
-          this.state = 'VICTORY';
-          if (this.soundEngine) {
-            this.soundEngine.playChurchBell();
-            setTimeout(() => this.soundEngine.playVictoryJingle(), 600);
-          }
-          this.particles.emit(this.player.wx, this.player.wy, '#ffd700', 40, 0.15, 60, 5, 'star');
-        } else {
-          // Need more hearts
-          this.showPrompt(
-            `La Gran Iglesia requiere 12 Corazones Sagrados para purificarse. Llevas [${this.collectedHeartIds.size}/12]. ¡Encuentra los que faltan!`,
-            120
-          );
-          // Gently push player back
-          this.player.wy = portal.wy + 0.6;
+    if (pDist < 1.6) {
+      if (this.collectedHeartIds.size >= portal.requiredHearts) {
+        // Consecration Victory!
+        this.state = 'VICTORY';
+        if (this.soundEngine) {
+          this.soundEngine.playChurchBell();
+          setTimeout(() => this.soundEngine.playVictoryJingle(), 600);
         }
+        this.particles.emit(this.player.wx, this.player.wy, '#ffd700', 45, 0.16, 65, 5, 'star');
+      } else {
+        this.showPrompt(
+          `La Gran Iglesia requiere 12 Corazones Sagrados para purificar el santuario. Llevas [${this.collectedHeartIds.size}/12]. ¡Busca los restantes por el mundo!`,
+          130
+        );
+        this.player.wy = portal.wy + 0.6;
       }
     }
   }
@@ -4830,100 +4835,88 @@ class IsometricRPGGame {
 
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // Background color based on scenario
-    let bgColor = '#0b0a1a';
-    if (this.currentScenarioId === 'aldea') bgColor = '#09121c';
-    else if (this.currentScenarioId === 'bosque') bgColor = '#05140f';
-    else if (this.currentScenarioId === 'cementerio') bgColor = '#0b0614';
-    else if (this.currentScenarioId === 'iglesia') bgColor = '#141208';
+    // Dynamic background color based on active zone
+    let bgColor = '#09121c';
+    if (this.currentZoneId === 'bosque') bgColor = '#05140f';
+    else if (this.currentZoneId === 'cementerio') bgColor = '#0c0716';
+    else if (this.currentZoneId === 'iglesia') bgColor = '#141208';
 
     this.ctx.fillStyle = bgColor;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // 1. Draw ground tiles
-    const gw = this.currentScenario.w;
-    const gh = this.currentScenario.h;
+    // 1. Draw Visible Continuous Ground Tiles
+    const minX = Math.max(this.world.minWx - 1, Math.floor(this.camWx - 16));
+    const maxX = Math.min(this.world.maxWx + 1, Math.ceil(this.camWx + 16));
+    const minY = Math.max(this.world.minWy - 1, Math.floor(this.camWy - 16));
+    const maxY = Math.min(this.world.maxWy + 1, Math.ceil(this.camWy + 16));
 
-    for (let y = 0; y < gh; y++) {
-      for (let x = 0; x < gw; x++) {
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
         const s = isoWorldToScreen(x, y, this.camWx, this.camWy);
 
-        // Cull tiles off-screen
         if (s.sx < -80 || s.sx > this.width + 80 || s.sy < -80 || s.sy > this.height + 80) {
           continue;
         }
 
+        const tileType = getContinuousGroundTile(x, y);
         let tileColor = '#242a38';
-        let strokeColor = 'rgba(0,0,0,0.15)';
+        let strokeColor = 'rgba(0,0,0,0.12)';
 
-        if (this.currentScenario.groundType === 'stone') {
+        if (tileType === 'stone') {
           tileColor = (x + y) % 2 === 0 ? '#384353' : '#2e3745';
-        } else if (this.currentScenario.groundType === 'forest') {
+        } else if (tileType === 'road_stone') {
+          tileColor = (x + y) % 2 === 0 ? '#4d5c70' : '#424f61';
+        } else if (tileType === 'forest') {
           tileColor = (x + y) % 2 === 0 ? '#1b4728' : '#14381f';
-        } else if (this.currentScenario.groundType === 'graveyard') {
+        } else if (tileType === 'road_forest') {
+          tileColor = (x + y) % 2 === 0 ? '#303d25' : '#26331e';
+        } else if (tileType === 'graveyard') {
           tileColor = (x + y) % 2 === 0 ? '#262230' : '#1f1b29';
-        } else if (this.currentScenario.groundType === 'church') {
-          // Red carpet down the middle axis
-          if (x >= 11 && x <= 13 && y >= 6) {
-            tileColor = '#800d1e';
-          } else {
-            tileColor = (x + y) % 2 === 0 ? '#e6e8eb' : '#d5d9df';
-          }
+        } else if (tileType === 'road_slate') {
+          tileColor = (x + y) % 2 === 0 ? '#383247' : '#2e283b';
+        } else if (tileType === 'church') {
+          tileColor = (x + y) % 2 === 0 ? '#e6e8eb' : '#d5d9df';
+        } else if (tileType === 'church_carpet') {
+          tileColor = '#800d1e';
+        } else if (tileType === 'boundary') {
+          tileColor = '#12121a';
         }
 
         drawIsoTile(this.ctx, s.sx, s.sy, tileColor, strokeColor);
       }
     }
 
-    // 2. Gather all entities for Y-Depth Sorting
+    // 2. Gather All Entities within camera range for Depth Sorting
     const renderList = [];
 
-    // Scenery objects
-    for (const obj of this.currentScenario.scenery) {
-      renderList.push({
-        type: 'scenery',
-        depth: obj.wx + obj.wy,
-        obj
-      });
+    for (const obj of this.world.scenery) {
+      if (Math.abs(obj.wx - this.camWx) < 18 && Math.abs(obj.wy - this.camWy) < 18) {
+        renderList.push({ type: 'scenery', depth: obj.wx + obj.wy, obj });
+      }
     }
 
-    // Hearts
     for (const h of this.hearts) {
-      renderList.push({
-        type: 'heart',
-        depth: h.wx + h.wy,
-        heart: h
-      });
+      if (Math.abs(h.wx - this.camWx) < 16 && Math.abs(h.wy - this.camWy) < 16) {
+        renderList.push({ type: 'heart', depth: h.wx + h.wy, heart: h });
+      }
     }
 
-    // Diablillos
     for (const d of this.diablillos) {
-      renderList.push({
-        type: 'diablillo',
-        depth: d.wx + d.wy,
-        diablillo: d
-      });
+      if (Math.abs(d.wx - this.camWx) < 16 && Math.abs(d.wy - this.camWy) < 16) {
+        renderList.push({ type: 'diablillo', depth: d.wx + d.wy, diablillo: d });
+      }
     }
 
-    // Fireballs
     for (const fb of this.fireballs) {
-      renderList.push({
-        type: 'fireball',
-        depth: fb.wx + fb.wy,
-        fireball: fb
-      });
+      renderList.push({ type: 'fireball', depth: fb.wx + fb.wy, fireball: fb });
     }
 
-    // Player (Beato Pedro)
-    renderList.push({
-      type: 'player',
-      depth: this.player.wx + this.player.wy
-    });
+    // Beato Pedro
+    renderList.push({ type: 'player', depth: this.player.wx + this.player.wy });
 
-    // Sort by depth
+    // Depth Sorting
     renderList.sort((a, b) => a.depth - b.depth);
 
-    // Draw sorted entities
     for (const item of renderList) {
       if (item.type === 'scenery') {
         drawSceneryObject(this.ctx, item.obj, this.camWx, this.camWy);
@@ -4938,7 +4931,6 @@ class IsometricRPGGame {
       }
     }
 
-    // Particles
     this.particles.draw(this.ctx, this.camWx, this.camWy);
 
     // Damage red screen flash
@@ -4953,13 +4945,9 @@ class IsometricRPGGame {
     // 3. Draw HUD
     this.drawHUD();
 
-    // 4. Overlays (Banner, Prompt, GameOver, Victory)
-    if (this.bannerTimer > 0) {
-      this.drawBanner();
-    }
-    if (this.promptTimer > 0) {
-      this.drawPromptOverlay();
-    }
+    // 4. Overlays
+    if (this.bannerTimer > 0) this.drawBanner();
+    if (this.promptTimer > 0) this.drawPromptOverlay();
 
     if (this.state === 'GAME_OVER') {
       this.drawGameOverScreen();
@@ -4972,7 +4960,7 @@ class IsometricRPGGame {
     this.ctx.save();
 
     // Left HUD Card (Hearts & Lives)
-    this.ctx.fillStyle = 'rgba(10, 9, 24, 0.82)';
+    this.ctx.fillStyle = 'rgba(10, 9, 24, 0.85)';
     this.ctx.strokeStyle = '#ffaa00';
     this.ctx.lineWidth = 1.5;
     this.ctx.beginPath();
@@ -4980,22 +4968,18 @@ class IsometricRPGGame {
     this.ctx.fill();
     this.ctx.stroke();
 
-    // Lives (Gracia Divina)
     this.ctx.font = 'bold 13px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#cbd5e1';
     this.ctx.fillText('GRACIA DIVINA:', 28, 38);
 
     for (let i = 0; i < this.player.maxLives; i++) {
       if (i < this.player.lives) {
-        this.ctx.fillStyle = '#ff1144';
         this.ctx.fillText('💖', 135 + i * 22, 38);
       } else {
-        this.ctx.fillStyle = '#555566';
         this.ctx.fillText('🖤', 135 + i * 22, 38);
       }
     }
 
-    // Sacred Hearts Collected
     this.ctx.fillStyle = '#ffe600';
     this.ctx.fillText('CORAZONES:', 28, 64);
     this.ctx.font = '900 15px "Segoe UI", sans-serif';
@@ -5006,18 +4990,19 @@ class IsometricRPGGame {
       64
     );
 
-    // Right HUD Card (Current Location)
-    this.ctx.fillStyle = 'rgba(10, 9, 24, 0.82)';
+    // Right HUD Card (Current Continuous Location)
+    this.ctx.fillStyle = 'rgba(10, 9, 24, 0.85)';
     this.ctx.strokeStyle = '#00f0ff';
     this.ctx.lineWidth = 1.5;
     this.ctx.beginPath();
-    this.ctx.roundRect(this.width - 250, 16, 234, 44, 8);
+    this.ctx.roundRect(this.width - 260, 16, 244, 44, 8);
     this.ctx.fill();
     this.ctx.stroke();
 
     this.ctx.font = 'bold 12px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#00f0ff';
-    this.ctx.fillText('📍 ' + this.currentScenario.name, this.width - 238, 42);
+    const zoneName = this.zones[this.currentZoneId] ? this.zones[this.currentZoneId].name : 'Tierras del Beato Pedro';
+    this.ctx.fillText('📍 ' + zoneName, this.width - 248, 42);
 
     // Bottom Cooldown Indicators
     const dodgePct = 1 - Math.max(0, this.player.dashCooldown / this.player.dashMaxCooldown);
@@ -5073,7 +5058,7 @@ class IsometricRPGGame {
     this.ctx.strokeStyle = '#ffd700';
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
-    this.ctx.roundRect(this.width / 2 - 280, 200, 560, 56, 10);
+    this.ctx.roundRect(this.width / 2 - 290, 200, 580, 56, 10);
     this.ctx.fill();
     this.ctx.stroke();
 
@@ -5131,7 +5116,7 @@ class IsometricRPGGame {
     this.ctx.shadowColor = '#00f0ff';
     this.ctx.shadowBlur = 10;
     this.ctx.fillText(
-      'El Beato Pedro ha purificado todos los escenarios y expulsado a los diablillos.',
+      'El Beato Pedro ha purificado todos los escenarios y expulsado al Mal.',
       this.width / 2,
       235
     );
@@ -5142,7 +5127,7 @@ class IsometricRPGGame {
 
     this.ctx.font = 'bold 18px "Segoe UI", sans-serif';
     this.ctx.fillStyle = '#ffe600';
-    this.ctx.fillText('PULSA [ R ] PARA VOLVER A EXPLORAR LA AVENTURA', this.width / 2, 360);
+    this.ctx.fillText('PULSA [ R ] PARA VOLVER A EXPLORAR EL MUNDO', this.width / 2, 360);
 
     this.ctx.restore();
   }
@@ -5150,8 +5135,17 @@ class IsometricRPGGame {
   restart() {
     this.collectedHeartIds.clear();
     this.player.lives = this.player.maxLives;
+    this.player.wx = this.world.spawnX;
+    this.player.wy = this.world.spawnY;
+    this.camWx = this.world.spawnX;
+    this.camWy = this.world.spawnY;
+    this.player.invincibilityTimer = 60;
+    this.player.knockbackVx = 0;
+    this.player.knockbackVy = 0;
     this.state = 'PLAYING';
-    this.initScenario('aldea');
+    this.currentZoneId = 'aldea';
+    this.initWorld();
+    if (this.soundEngine) this.soundEngine.startRPGBGM('aldea');
   }
 
   loop() {
@@ -5162,6 +5156,7 @@ class IsometricRPGGame {
     this.animId = requestAnimationFrame(this.loop);
   }
 }
+
 
 
 // ==========================================
@@ -5451,15 +5446,25 @@ class AppManager {
 
   initEventListeners() {
     // Mode selection buttons
-    document.getElementById('btn-choose-platformer').addEventListener('click', (e) => {
-      e.stopPropagation();
+    const selectPlatformer = (e) => {
+      if (e) e.stopPropagation();
       this.switchMode('PLATFORMER');
-    });
-
-    document.getElementById('btn-choose-rpg').addEventListener('click', (e) => {
-      e.stopPropagation();
+    };
+    const selectRPG = (e) => {
+      if (e) e.stopPropagation();
       this.switchMode('RPG');
-    });
+    };
+
+    const cardPlat = document.getElementById('btn-choose-platformer');
+    if (cardPlat) {
+      cardPlat.addEventListener('click', selectPlatformer);
+      cardPlat.addEventListener('touchend', selectPlatformer);
+    }
+    const cardRpg = document.getElementById('btn-choose-rpg');
+    if (cardRpg) {
+      cardRpg.addEventListener('click', selectRPG);
+      cardRpg.addEventListener('touchend', selectRPG);
+    }
 
     // Mode Switcher in bar & touch top bar
     const btnShader = document.getElementById('btn-shader-toggle');
@@ -5489,11 +5494,16 @@ class AppManager {
       this.showModeModal();
     });
 
-    document.getElementById('touch-mode').addEventListener('click', (e) => {
-      if (e.cancelable) e.preventDefault();
-      e.stopPropagation();
+    const btnTouchMode = document.getElementById('touch-mode');
+    const openModal = (e) => {
+      if (e && e.cancelable) e.preventDefault();
+      if (e) e.stopPropagation();
       this.showModeModal();
-    });
+    };
+    if (btnTouchMode) {
+      btnTouchMode.addEventListener('click', openModal);
+      btnTouchMode.addEventListener('touchend', openModal);
+    }
 
     // Shared Audio Mute
     document.getElementById('touch-mute').addEventListener('click', (e) => {
