@@ -2226,8 +2226,8 @@ class PlatformerGame {
     this.transitionTimer = 0;
     this.deathTimer = 0;
 
-    this.camX = 0;
-    this.camY = 0;
+    this.camWx = this.currentScenario.spawnX;
+    this.camWy = this.currentScenario.spawnY;
 
     this.setupInputs();
     this.loadLevel(0);
@@ -2268,45 +2268,83 @@ class PlatformerGame {
 
   setupInputs() {
     window.addEventListener('keydown', (e) => {
-      audio.init();
+      this.soundEngine.init();
 
-      if (e.code === 'KeyA' || e.code === 'ArrowLeft') this.input.left = true;
-      if (e.code === 'KeyD' || e.code === 'ArrowRight') this.input.right = true;
-      if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') {
-        if (!this.input.jump) this.input.jumpPressed = true;
-        this.input.jump = true;
-        e.preventDefault();
+      if (e.code === 'KeyM' || e.key === 'm' || e.key === 'M') {
+        this.soundEngine.toggleMute();
+        return;
       }
 
-      // Lanzamiento de sombrero con Tecla J o Tecla F
-      if (e.code === 'KeyJ' || e.code === 'KeyF') {
-        this.throwHat();
+      if (e.code === 'Escape' || e.key === 'Escape') {
+        this.showModeModal();
+        return;
       }
 
-      // Teclas 1 a 5 para saltar de Fase cómodamente y probar
-      if (e.code === 'Digit1') this.loadLevel(0);
-      if (e.code === 'Digit2') this.loadLevel(1);
-      if (e.code === 'Digit3') this.loadLevel(2);
-      if (e.code === 'Digit4') this.loadLevel(3);
-      if (e.code === 'Digit5') this.loadLevel(4);
+      if (this.activeMode === 'PLATFORMER' && this.platformerGame) {
+        // Platformer inputs handled directly inside PlatformerGame
+      } else if (this.activeMode === 'RPG' && this.rpgGame) {
+        const isUp = e.code === 'KeyW' || e.code === 'ArrowUp' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W';
+        const isDown = e.code === 'KeyS' || e.code === 'ArrowDown' || e.key === 'ArrowDown' || e.key === 's' || e.key === 'S';
+        const isLeft = e.code === 'KeyA' || e.code === 'ArrowLeft' || e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A';
+        const isRight = e.code === 'KeyD' || e.code === 'ArrowRight' || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D';
 
-      if (e.code === 'KeyR') {
-        if (this.state === 'GAME_OVER' || this.state === 'VICTORY') this.restartGame();
-        else if (this.state === 'PLAYING') this.player.die();
-      }
+        if (isUp) {
+          this.rpgGame.input.up = true;
+          e.preventDefault();
+        }
+        if (isDown) {
+          this.rpgGame.input.down = true;
+          e.preventDefault();
+        }
+        if (isLeft) {
+          this.rpgGame.input.left = true;
+          e.preventDefault();
+        }
+        if (isRight) {
+          this.rpgGame.input.right = true;
+          e.preventDefault();
+        }
 
-      if (e.code === 'KeyM') audio.toggleMute();
-      if (e.code === 'KeyI') this.toggleControlLayout();
+        // Dodge / Dash with Space
+        if (e.code === 'Space' || e.key === ' ') {
+          let dx = 0;
+          let dy = 0;
+          if (this.rpgGame.input.right) dx += 1;
+          if (this.rpgGame.input.left) dx -= 1;
+          if (this.rpgGame.input.down) dy += 1;
+          if (this.rpgGame.input.up) dy -= 1;
+          this.rpgGame.player.performDodge(dx, dy, this.soundEngine, this.rpgGame.particles);
+          e.preventDefault();
+        }
 
-      if (this.state === 'START') {
-        this.state = 'PLAYING';
+        // Blessing with J or F
+        if (e.code === 'KeyJ' || e.code === 'KeyF' || e.key === 'j' || e.key === 'J' || e.key === 'f' || e.key === 'F') {
+          this.rpgGame.player.performBlessing(
+            this.rpgGame.diablillos,
+            this.rpgGame.fireballs,
+            this.soundEngine,
+            this.rpgGame.particles
+          );
+        }
+
+        if (e.code === 'KeyR' || e.key === 'r' || e.key === 'R') {
+          this.rpgGame.restart();
+        }
       }
     });
 
     window.addEventListener('keyup', (e) => {
-      if (e.code === 'KeyA' || e.code === 'ArrowLeft') this.input.left = false;
-      if (e.code === 'KeyD' || e.code === 'ArrowRight') this.input.right = false;
-      if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') this.input.jump = false;
+      if (this.activeMode === 'RPG' && this.rpgGame) {
+        const isUp = e.code === 'KeyW' || e.code === 'ArrowUp' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W';
+        const isDown = e.code === 'KeyS' || e.code === 'ArrowDown' || e.key === 'ArrowDown' || e.key === 's' || e.key === 'S';
+        const isLeft = e.code === 'KeyA' || e.code === 'ArrowLeft' || e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A';
+        const isRight = e.code === 'KeyD' || e.code === 'ArrowRight' || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D';
+
+        if (isUp) this.rpgGame.input.up = false;
+        if (isDown) this.rpgGame.input.down = false;
+        if (isLeft) this.rpgGame.input.left = false;
+        if (isRight) this.rpgGame.input.right = false;
+      }
     });
 
     const triggerScreenTap = () => {
@@ -3150,19 +3188,21 @@ class PlatformerGame {
 const ISO_TILE_W = 64;
 const ISO_TILE_H = 32;
 
-function isoWorldToScreen(wx, wy, camX = 0, camY = 0, originX = 480, originY = 270) {
+function isoWorldToScreen(wx, wy, camWx = 0, camWy = 0, originX = 480, originY = 270) {
   return {
-    sx: (wx - wy) * (ISO_TILE_W / 2) + originX - camX,
-    sy: (wx + wy) * (ISO_TILE_H / 2) + originY - camY
+    sx: ((wx - camWx) - (wy - camWy)) * (ISO_TILE_W / 2) + originX,
+    sy: ((wx - camWx) + (wy - camWy)) * (ISO_TILE_H / 2) + originY
   };
 }
 
-function isoScreenToWorld(sx, sy, camX = 0, camY = 0, originX = 480, originY = 270) {
-  const dx = sx - (originX - camX);
-  const dy = sy - (originY - camY);
+function isoScreenToWorld(sx, sy, camWx = 0, camWy = 0, originX = 480, originY = 270) {
+  const dx = sx - originX;
+  const dy = sy - originY;
+  const dwx = (dy / (ISO_TILE_H / 2) + dx / (ISO_TILE_W / 2)) / 2;
+  const dwy = (dy / (ISO_TILE_H / 2) - dx / (ISO_TILE_W / 2)) / 2;
   return {
-    wx: (dy / (ISO_TILE_H / 2) + dx / (ISO_TILE_W / 2)) / 2,
-    wy: (dy / (ISO_TILE_H / 2) - dx / (ISO_TILE_W / 2)) / 2
+    wx: camWx + dwx,
+    wy: camWy + dwy
   };
 }
 
@@ -3655,9 +3695,9 @@ class RPGPlayer {
   constructor(wx, wy) {
     this.wx = wx;
     this.wy = wy;
-    this.speed = 0.085;
+    this.speed = 4.0; // Responsive screen speed (px/frame)
     this.facing = 1;
-    this.radius = 0.38;
+    this.radius = 0.28;
 
     this.lives = 3;
     this.maxLives = 3;
@@ -3668,16 +3708,33 @@ class RPGPlayer {
     this.isDashing = false;
     this.dashTimer = 0;
     this.dashCooldown = 0;
-    this.dashMaxCooldown = 70;
+    this.dashMaxCooldown = 60;
     this.dashVx = 0;
     this.dashVy = 0;
 
     this.blessingCooldown = 0;
-    this.blessingMaxCooldown = 140;
+    this.blessingMaxCooldown = 120;
     this.blessingEffect = 0;
 
     this.knockbackVx = 0;
     this.knockbackVy = 0;
+  }
+
+  isBlocked(wx, wy, obstacles) {
+    const r = this.radius;
+    const minX = Math.floor(wx - r);
+    const maxX = Math.floor(wx + r);
+    const minY = Math.floor(wy - r);
+    const maxY = Math.floor(wy + r);
+
+    for (let tx = minX; tx <= maxX; tx++) {
+      for (let ty = minY; ty <= maxY; ty++) {
+        if (obstacles.has(tx + ',' + ty)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   takeDamage(amount = 1, fromWx = 0, fromWy = 0, soundEngine, particleSystem) {
@@ -3689,12 +3746,12 @@ class RPGPlayer {
     const kx = this.wx - fromWx;
     const ky = this.wy - fromWy;
     const dist = Math.hypot(kx, ky) || 1;
-    this.knockbackVx = (kx / dist) * 0.12;
-    this.knockbackVy = (ky / dist) * 0.12;
+    this.knockbackVx = (kx / dist) * 0.14;
+    this.knockbackVy = (ky / dist) * 0.14;
 
     if (soundEngine) soundEngine.playDamage();
     if (particleSystem) {
-      particleSystem.emit(this.wx, this.wy, '#ff0033', 10, 0.08, 25, 4);
+      particleSystem.emit(this.wx, this.wy, '#ff0033', 12, 0.08, 25, 4);
     }
     return true;
   }
@@ -3710,19 +3767,22 @@ class RPGPlayer {
     }
 
     const norm = Math.hypot(dirX, dirY) || 1;
-    const dSpeed = 0.22;
-    this.dashVx = (dirX / norm) * dSpeed;
-    this.dashVy = (dirY / norm) * dSpeed;
+    const dSpeed = 8.5; // Swift divine dash
+    const targetVx = (dirX / norm) * dSpeed;
+    const targetVy = (dirY / norm) * dSpeed;
+
+    this.dashVx = (targetVy / 16 + targetVx / 32) / 2;
+    this.dashVy = (targetVy / 16 - targetVx / 32) / 2;
 
     this.isDashing = true;
     this.dashTimer = 16;
     this.dashCooldown = this.dashMaxCooldown;
-    this.invincibilityTimer = Math.max(this.invincibilityTimer, 20);
+    this.invincibilityTimer = Math.max(this.invincibilityTimer, 22);
 
     if (soundEngine) soundEngine.playDashSound();
     if (particleSystem) {
-      particleSystem.emit(this.wx, this.wy, '#00ffff', 8, 0.06, 20, 3, 'star');
-      particleSystem.emit(this.wx, this.wy, '#ffffff', 5, 0.04, 15, 2);
+      particleSystem.emit(this.wx, this.wy, '#00ffff', 10, 0.08, 22, 3, 'star');
+      particleSystem.emit(this.wx, this.wy, '#ffffff', 8, 0.05, 18, 2);
     }
     return true;
   }
@@ -3735,28 +3795,28 @@ class RPGPlayer {
 
     if (soundEngine) soundEngine.playBlessingPulse();
     if (particleSystem) {
-      particleSystem.emit(this.wx, this.wy, '#ffd700', 25, 0.12, 35, 4, 'star');
-      particleSystem.emit(this.wx, this.wy, '#ffffff', 15, 0.08, 30, 3);
+      particleSystem.emit(this.wx, this.wy, '#ffd700', 30, 0.14, 38, 4, 'star');
+      particleSystem.emit(this.wx, this.wy, '#ffffff', 18, 0.09, 32, 3);
     }
 
     for (const d of diablillos) {
       const dist = Math.hypot(d.wx - this.wx, d.wy - this.wy);
-      if (dist < 3.8) {
+      if (dist < 4.0) {
         const kx = d.wx - this.wx;
         const ky = d.wy - this.wy;
         const dNorm = Math.hypot(kx, ky) || 1;
-        d.wx += (kx / dNorm) * 1.6;
-        d.wy += (ky / dNorm) * 1.6;
-        if (particleSystem) particleSystem.emit(d.wx, d.wy, '#ffd700', 8, 0.05, 20, 3);
+        d.wx += (kx / dNorm) * 1.8;
+        d.wy += (ky / dNorm) * 1.8;
+        if (particleSystem) particleSystem.emit(d.wx, d.wy, '#ffd700', 8, 0.06, 22, 3);
       }
     }
 
     if (fireballs) {
       for (const fb of fireballs) {
         const dist = Math.hypot(fb.wx - this.wx, fb.wy - this.wy);
-        if (dist < 4.2) {
+        if (dist < 4.5) {
           fb.isDead = true;
-          if (particleSystem) particleSystem.emit(fb.wx, fb.wy, '#00ffff', 6, 0.05, 15, 3);
+          if (particleSystem) particleSystem.emit(fb.wx, fb.wy, '#00ffff', 8, 0.06, 18, 3);
         }
       }
     }
@@ -3769,24 +3829,30 @@ class RPGPlayer {
     if (this.blessingCooldown > 0) this.blessingCooldown--;
     if (this.blessingEffect > 0) this.blessingEffect--;
 
+    // Knockback
     if (Math.abs(this.knockbackVx) > 0.005 || Math.abs(this.knockbackVy) > 0.005) {
-      this.wx += this.knockbackVx;
-      this.wy += this.knockbackVy;
+      const nextX = this.wx + this.knockbackVx;
+      const nextY = this.wy + this.knockbackVy;
+      if (!this.isBlocked(nextX, nextY, obstacles)) {
+        this.wx = nextX;
+        this.wy = nextY;
+      }
       this.knockbackVx *= 0.85;
       this.knockbackVy *= 0.85;
       return;
     }
 
+    // Dashing
     if (this.isDashing) {
       this.dashTimer--;
       const nextX = this.wx + this.dashVx;
       const nextY = this.wy + this.dashVy;
-      if (!this.isObstacle(nextX, nextY, obstacles)) {
+      if (!this.isBlocked(nextX, nextY, obstacles)) {
         this.wx = nextX;
         this.wy = nextY;
       }
       if (particleSystem) {
-        particleSystem.emit(this.wx, this.wy, '#00f0ff', 1, 0.02, 12, 2);
+        particleSystem.emit(this.wx, this.wy, '#00f0ff', 2, 0.03, 14, 2);
       }
       if (this.dashTimer <= 0) {
         this.isDashing = false;
@@ -3794,6 +3860,7 @@ class RPGPlayer {
       return;
     }
 
+    // Screen-aligned 4-direction movement
     let screenVx = 0;
     let screenVy = 0;
 
@@ -3804,32 +3871,35 @@ class RPGPlayer {
 
     if (screenVx !== 0 || screenVy !== 0) {
       this.isMoving = true;
-      this.walkAnimTimer += 0.2;
+      this.walkAnimTimer += 0.22;
 
+      // Normalize screen movement
       const len = Math.hypot(screenVx, screenVy);
-      screenVx = (screenVx / len) * this.speed;
-      screenVy = (screenVy / len) * this.speed;
+      const targetVx = (screenVx / len) * this.speed;
+      const targetVy = (screenVy / len) * this.speed;
 
-      const dwx = (screenVy / (ISO_TILE_H / 2) + screenVx / (ISO_TILE_W / 2)) / 2;
-      const dwy = (screenVy / (ISO_TILE_H / 2) - screenVx / (ISO_TILE_W / 2)) / 2;
+      // Convert screen velocity to world coordinates deltas
+      const dwx = (targetVy / 16 + targetVx / 32) / 2;
+      const dwy = (targetVy / 16 - targetVx / 32) / 2;
 
-      if (screenVx > 0.01) this.facing = 1;
-      else if (screenVx < -0.01) this.facing = -1;
+      if (targetVx > 0.1) this.facing = 1;
+      else if (targetVx < -0.1) this.facing = -1;
 
       const nextX = this.wx + dwx;
       const nextY = this.wy + dwy;
 
-      if (!this.isObstacle(nextX, nextY, obstacles)) {
+      // Smooth collision with sliding along obstacles
+      if (!this.isBlocked(nextX, nextY, obstacles)) {
         this.wx = nextX;
         this.wy = nextY;
-      } else if (!this.isObstacle(nextX, this.wy, obstacles)) {
+      } else if (!this.isBlocked(nextX, this.wy, obstacles)) {
         this.wx = nextX;
-      } else if (!this.isObstacle(this.wx, nextY, obstacles)) {
+      } else if (!this.isBlocked(this.wx, nextY, obstacles)) {
         this.wy = nextY;
       }
 
-      if (particleSystem && Math.random() < 0.2) {
-        particleSystem.emit(this.wx, this.wy, '#d4c29a', 1, 0.015, 12, 2);
+      if (particleSystem && Math.random() < 0.25) {
+        particleSystem.emit(this.wx, this.wy, '#e0d4be', 1, 0.02, 14, 2);
       }
     } else {
       this.isMoving = false;
@@ -3837,58 +3907,90 @@ class RPGPlayer {
     }
   }
 
-  isObstacle(wx, wy, obstacles) {
-    const tx = Math.floor(wx);
-    const ty = Math.floor(wy);
-    return obstacles.has(tx + ',' + ty);
-  }
-
-  draw(ctx, camX, camY, priestImg) {
-    const s = isoWorldToScreen(this.wx, this.wy, camX, camY);
+  draw(ctx, camWx, camWy, priestImg) {
+    const s = isoWorldToScreen(this.wx, this.wy, camWx, camWy);
 
     if (this.invincibilityTimer > 0 && Math.floor(this.invincibilityTimer / 4) % 2 === 1) {
       return;
     }
 
     ctx.save();
-    // Shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+
+    // Sacred Ground Shadow & Golden Holy Aura
+    ctx.fillStyle = 'rgba(0,0,0,0.38)';
     ctx.beginPath();
-    ctx.ellipse(s.sx, s.sy + 2, 13, 7, 0, 0, Math.PI * 2);
+    ctx.ellipse(s.sx, s.sy + 2, 18, 9, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Blessing effect
+    // Soft celestial light aura beneath Beato Pedro
+    ctx.fillStyle = 'rgba(255, 230, 100, 0.25)';
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 2, 14, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Blessing holy ripple effect
     if (this.blessingEffect > 0) {
-      const radius = (30 - this.blessingEffect) * 4.5;
+      const radius = (30 - this.blessingEffect) * 4.8;
       ctx.strokeStyle = 'rgba(255, 215, 0, ' + (this.blessingEffect / 30) + ')';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
-      ctx.arc(s.sx, s.sy, radius, 0, Math.PI * 2);
+      ctx.arc(s.sx, s.sy - 15, radius, 0, Math.PI * 2);
       ctx.stroke();
     }
 
     const bob = this.isMoving ? Math.sin(this.walkAnimTimer) * 3 : 0;
     const tilt = this.isMoving ? Math.sin(this.walkAnimTimer * 0.5) * 0.08 : 0;
 
-    ctx.translate(s.sx, s.sy - 34 + bob);
+    ctx.translate(s.sx, s.sy - 38 + bob);
     ctx.rotate(tilt);
     if (this.facing === -1) {
       ctx.scale(-1, 1);
     }
 
-    const spriteW = 56;
-    const spriteH = 70;
+    // Prominent, crisp sprite dimensions
+    const spriteW = 66;
+    const spriteH = 82;
 
-    if (priestImg && priestImg.complete && priestImg.naturalWidth > 0) {
-      ctx.drawImage(priestImg, -spriteW / 2, -spriteH / 2, spriteW, spriteH);
+    const img = priestImg || (typeof priestImage !== 'undefined' ? priestImage : null);
+
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, -spriteW / 2, -spriteH / 2, spriteW, spriteH);
     } else {
-      ctx.fillStyle = '#ff1122';
+      // Clear, crisp fallback cartoon priest with chasuble and cross
+      ctx.fillStyle = '#ff1133';
       ctx.beginPath();
-      ctx.arc(0, -6, 16, 0, Math.PI * 2);
+      ctx.roundRect(-22, -18, 44, 48, [12, 12, 8, 8]);
       ctx.fill();
+
+      // Golden cross
       ctx.fillStyle = '#ffd700';
-      ctx.fillRect(-2, -14, 4, 16);
-      ctx.fillRect(-8, -8, 16, 4);
+      ctx.fillRect(-3, -12, 6, 28);
+      ctx.fillRect(-12, -4, 24, 6);
+
+      // Head
+      ctx.fillStyle = '#fed4b4';
+      ctx.beginPath();
+      ctx.arc(0, -28, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Clerical collar
+      ctx.fillStyle = '#111111';
+      ctx.fillRect(-10, -14, 20, 6);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-3, -14, 6, 6);
+
+      // Glasses
+      ctx.strokeStyle = '#222222';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(-5, -28, 4.5, 0, Math.PI * 2);
+      ctx.arc(5, -28, 4.5, 0, Math.PI * 2);
+      ctx.moveTo(-0.5, -28);
+      ctx.lineTo(0.5, -28);
+      ctx.stroke();
     }
 
     ctx.restore();
@@ -4581,9 +4683,8 @@ class IsometricRPGGame {
     this.bannerTimer = 180; // 3 seconds
 
     // Initial camera snap
-    const targetScreen = isoWorldToScreen(this.player.wx, this.player.wy, 0, 0, this.width / 2, this.height / 2);
-    this.camX = targetScreen.sx;
-    this.camY = targetScreen.sy;
+    this.camWx = this.player.wx;
+    this.camWy = this.player.wy;
   }
 
   showPrompt(msg, duration = 180) {
@@ -4602,10 +4703,9 @@ class IsometricRPGGame {
     // Update player
     this.player.update(this.input, this.obstacles, this.particles);
 
-    // Camera follow smoothly
-    const playerScreen = isoWorldToScreen(this.player.wx, this.player.wy, 0, 0, this.width / 2, this.height / 2);
-    this.camX += (playerScreen.sx - this.camX) * 0.1;
-    this.camY += (playerScreen.sy - this.camY) * 0.1;
+    // Camera smoothly follows player in world coordinates
+    this.camWx += (this.player.wx - this.camWx) * 0.12;
+    this.camWy += (this.player.wy - this.camWy) * 0.12;
 
     // Update hearts & collection check
     for (let i = this.hearts.length - 1; i >= 0; i--) {
@@ -4720,7 +4820,7 @@ class IsometricRPGGame {
 
     for (let y = 0; y < gh; y++) {
       for (let x = 0; x < gw; x++) {
-        const s = isoWorldToScreen(x, y, this.camX, this.camY, this.width / 2, this.height / 2);
+        const s = isoWorldToScreen(x, y, this.camWx, this.camWy);
 
         // Cull tiles off-screen
         if (s.sx < -80 || s.sx > this.width + 80 || s.sy < -80 || s.sy > this.height + 80) {
@@ -4800,20 +4900,20 @@ class IsometricRPGGame {
     // Draw sorted entities
     for (const item of renderList) {
       if (item.type === 'scenery') {
-        drawSceneryObject(this.ctx, item.obj, this.camX, this.camY);
+        drawSceneryObject(this.ctx, item.obj, this.camWx, this.camWy);
       } else if (item.type === 'heart') {
-        item.heart.draw(this.ctx, this.camX, this.camY);
+        item.heart.draw(this.ctx, this.camWx, this.camWy);
       } else if (item.type === 'diablillo') {
-        item.diablillo.draw(this.ctx, this.camX, this.camY);
+        item.diablillo.draw(this.ctx, this.camWx, this.camWy);
       } else if (item.type === 'fireball') {
-        item.fireball.draw(this.ctx, this.camX, this.camY);
+        item.fireball.draw(this.ctx, this.camWx, this.camWy);
       } else if (item.type === 'player') {
-        this.player.draw(this.ctx, this.camX, this.camY, this.priestImage);
+        this.player.draw(this.ctx, this.camWx, this.camWy, this.priestImage);
       }
     }
 
     // Particles
-    this.particles.draw(this.ctx, this.camX, this.camY);
+    this.particles.draw(this.ctx, this.camWx, this.camWy);
 
     // 3. Draw HUD
     this.drawHUD();
@@ -5287,6 +5387,14 @@ class AppManager {
     bindTouch(document.getElementById('touch-rpg-left'),
       () => { if (this.rpgGame) this.rpgGame.input.left = true; },
       () => { if (this.rpgGame) this.rpgGame.input.left = false; }
+    );
+    bindTouch(document.getElementById('touch-left'),
+      () => { if (this.rpgGame) this.rpgGame.input.left = true; },
+      () => { if (this.rpgGame) this.rpgGame.input.left = false; }
+    );
+    bindTouch(document.getElementById('touch-right'),
+      () => { if (this.rpgGame) this.rpgGame.input.right = true; },
+      () => { if (this.rpgGame) this.rpgGame.input.right = false; }
     );
     bindTouch(document.getElementById('touch-rpg-right'),
       () => { if (this.rpgGame) this.rpgGame.input.right = true; },
