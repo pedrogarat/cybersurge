@@ -466,6 +466,7 @@
         <button id="touch-mode" class="touch-btn touch-btn-small touch-btn-mode">🎮 MODO</button>
         <button id="touch-layout" class="touch-btn touch-btn-small">⇄ INVERTIR</button>
         <button id="touch-mute" class="touch-btn touch-btn-small">🔊 AUDIO</button>
+        <button id="touch-shader" class="touch-btn touch-btn-small" style="color:#ffe600; border-color:#ffe600;">✨ SHADER</button>
         <button id="touch-restart" class="touch-btn touch-btn-small">🔄 REINICIAR</button>
       </div>
 
@@ -512,6 +513,7 @@
 
   <div id="instructions-bar">
     <div id="pc-instructions">Cargando instrucciones...</div>
+    <button id="btn-shader-toggle" class="btn-mode-switch" style="background: linear-gradient(135deg, #00f0ff, #7b2cbf); margin-right: 8px;">✨ SHADER: GLSL</button>
     <button id="btn-switch-mode-bar" class="btn-mode-switch">🎮 CAMBIAR MODO</button>
   </div>
 
@@ -650,6 +652,10 @@ class SoundEngine {
       osc.start(now);
       osc.stop(now + 0.31);
     } catch (e) {}
+  }
+
+  playDamage() {
+    this.playHurt();
   }
 
   playSpring() {
@@ -2270,6 +2276,13 @@ class PlatformerGame {
     window.addEventListener('keydown', (e) => {
       this.soundEngine.init();
 
+      if (e.code === 'KeyK' || e.key === 'k' || e.key === 'K') {
+        this.shaderPipeline.toggle();
+        const b = document.getElementById('btn-shader-toggle');
+        if (b) b.innerText = this.shaderPipeline.enabled ? '✨ SHADER: ACTIVO' : '✨ SHADER: OFF';
+        return;
+      }
+
       if (e.code === 'KeyM' || e.key === 'm' || e.key === 'M') {
         this.soundEngine.toggleMute();
         return;
@@ -3534,6 +3547,7 @@ class RPGDiablillo {
             this.dashVx = (dx / dist) * dashSpeed;
             this.dashVy = (dy / dist) * dashSpeed;
             if (soundEngine) soundEngine.playDashSound();
+    if (window.shaderPipeline) window.shaderPipeline.triggerDash();
             if (particleSystem) particleSystem.emit(this.wx, this.wy, '#ff2200', 10, 0.08, 20, 4);
           } else {
             this.moveTowards(player.wx, player.wy, this.speed, obstacles);
@@ -3749,7 +3763,10 @@ class RPGPlayer {
     this.knockbackVx = (kx / dist) * 0.14;
     this.knockbackVy = (ky / dist) * 0.14;
 
-    if (soundEngine) soundEngine.playDamage();
+    if (soundEngine) {
+      if (typeof soundEngine.playDamage === 'function') soundEngine.playDamage();
+      else if (typeof soundEngine.playHurt === 'function') soundEngine.playHurt();
+    }
     if (particleSystem) {
       particleSystem.emit(this.wx, this.wy, '#ff0033', 12, 0.08, 25, 4);
     }
@@ -4587,6 +4604,7 @@ class IsometricRPGGame {
 
     this.promptMessage = '';
     this.promptTimer = 0;
+    this.damageFlashTimer = 0;
 
     this.animId = null;
     this.obstacles = new Set();
@@ -4731,7 +4749,11 @@ class IsometricRPGGame {
       const dist = Math.hypot(fb.wx - this.player.wx, fb.wy - this.player.wy);
       if (dist < 0.7) {
         fb.isDead = true;
-        this.player.takeDamage(1, fb.wx, fb.wy, this.soundEngine, this.particles);
+        const damaged = this.player.takeDamage(1, fb.wx, fb.wy, this.soundEngine, this.particles);
+        if (damaged) {
+          this.damageFlashTimer = 14;
+          if (window.shaderPipeline) window.shaderPipeline.triggerDamage();
+        }
         if (this.player.lives <= 0) {
           this.state = 'GAME_OVER';
         }
@@ -4750,6 +4772,10 @@ class IsometricRPGGame {
       const dist = Math.hypot(d.wx - this.player.wx, d.wy - this.player.wy);
       if (dist < 0.75) {
         const damaged = this.player.takeDamage(1, d.wx, d.wy, this.soundEngine, this.particles);
+        if (damaged) {
+          this.damageFlashTimer = 14;
+          if (window.shaderPipeline) window.shaderPipeline.triggerDamage();
+        }
         if (damaged && this.player.lives <= 0) {
           this.state = 'GAME_OVER';
         }
@@ -4914,6 +4940,15 @@ class IsometricRPGGame {
 
     // Particles
     this.particles.draw(this.ctx, this.camWx, this.camWy);
+
+    // Damage red screen flash
+    if (this.damageFlashTimer > 0) {
+      this.damageFlashTimer--;
+      this.ctx.save();
+      this.ctx.fillStyle = 'rgba(255, 0, 40, ' + (this.damageFlashTimer / 35) + ')';
+      this.ctx.fillRect(0, 0, this.width, this.height);
+      this.ctx.restore();
+    }
 
     // 3. Draw HUD
     this.drawHUD();
@@ -5123,6 +5158,7 @@ class IsometricRPGGame {
     if (!this.active) return;
     this.update();
     this.draw();
+    if (window.shaderPipeline) window.shaderPipeline.render(true);
     this.animId = requestAnimationFrame(this.loop);
   }
 }
@@ -5131,6 +5167,199 @@ class IsometricRPGGame {
 // ==========================================
 // 8. COORDINADOR GENERAL (APP MANAGER)
 // ==========================================
+
+
+// ==========================================
+// 9. MOTOR DE SHADERS GLSL WEBGL
+// ==========================================
+class WebGLShaderPipeline {
+  constructor(sourceCanvas) {
+    this.sourceCanvas = sourceCanvas;
+    this.container = sourceCanvas.parentElement;
+    this.enabled = localStorage.getItem('beato_pedro_shader_enabled') !== 'false';
+    this.gl = null;
+    this.canvas = null;
+    this.program = null;
+    this.texture = null;
+    this.time = 0;
+    this.damageUniform = 0;
+    this.chromaUniform = 0;
+
+    this.initGL();
+  }
+
+  initGL() {
+    try {
+      this.canvas = document.createElement('canvas');
+      this.canvas.id = 'shaderCanvas';
+      this.canvas.width = 960;
+      this.canvas.height = 540;
+      this.canvas.style.position = 'absolute';
+      this.canvas.style.top = '0';
+      this.canvas.style.left = '0';
+      this.canvas.style.width = '100%';
+      this.canvas.style.height = '100%';
+      this.canvas.style.pointerEvents = 'none';
+      this.canvas.style.zIndex = '8';
+      this.canvas.style.display = this.enabled ? 'block' : 'none';
+
+      this.container.appendChild(this.canvas);
+
+      const gl = this.canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: false });
+      if (!gl) {
+        console.warn('WebGL Shader no compatible en este navegador.');
+        return;
+      }
+      this.gl = gl;
+
+      // Vertex Shader
+      const vsSource = `
+        attribute vec2 a_position;
+        varying vec2 v_uv;
+        void main() {
+          v_uv = a_position * 0.5 + 0.5;
+          v_uv.y = 1.0 - v_uv.y;
+          gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+      `;
+
+      // Fragment Shader
+      const fsSource = `
+        precision mediump float;
+        varying vec2 v_uv;
+        uniform sampler2D u_texture;
+        uniform float u_time;
+        uniform float u_damage;
+        uniform float u_chroma;
+        uniform int u_mode;
+
+        void main() {
+          vec2 uv = v_uv;
+
+          // Aberración cromática dinámica al recibir daño o esquivar
+          float split = (u_damage * 0.016) + (u_chroma * 0.009);
+          float r = texture2D(u_texture, uv + vec2(split, 0.0)).r;
+          float g = texture2D(u_texture, uv).g;
+          float b = texture2D(u_texture, uv - vec2(split, 0.0)).b;
+          float a = texture2D(u_texture, uv).a;
+          vec3 color = vec3(r, g, b);
+
+          // Flash rojo por impacto de daño
+          if (u_damage > 0.0) {
+            color = mix(color, vec3(1.0, 0.12, 0.2), u_damage * 0.42);
+          }
+
+          if (u_mode == 1) {
+            // MODO RPG: Iluminación celestial, viñeta cinematográfica y rayos divinos
+            float vig = 1.0 - length(uv - 0.5) * 0.32;
+            color *= max(0.0, vig);
+
+            // Shimmer dorado celestial
+            float rays = sin(uv.x * 18.0 + u_time * 0.5) * sin(uv.x * 10.0 - u_time * 0.3) * (1.0 - uv.y) * 0.07;
+            color += vec3(1.0, 0.88, 0.45) * max(0.0, rays);
+          } else {
+            // MODO PLATAFORMAS: Scanlines CRT arcade retro y fósforo
+            float scanline = sin(uv.y * 540.0 * 3.14159) * 0.035;
+            color -= scanline;
+            float vig = 1.0 - length(uv - 0.5) * 0.40;
+            color *= max(0.0, vig);
+          }
+
+          gl_FragColor = vec4(color, a);
+        }
+      `;
+
+      // Compile Shaders
+      const vs = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vs, vsSource);
+      gl.compileShader(vs);
+
+      const fs = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(fs, fsSource);
+      gl.compileShader(fs);
+
+      const prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      this.program = prog;
+
+      // Fullscreen quad buffer
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+        gl.STATIC_DRAW
+      );
+
+      const posAttr = gl.getAttribLocation(prog, 'a_position');
+      gl.enableVertexAttribArray(posAttr);
+      gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
+
+      // Texture
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      this.texture = tex;
+
+      // Uniform locations
+      this.uTimeLoc = gl.getUniformLocation(prog, 'u_time');
+      this.uDamageLoc = gl.getUniformLocation(prog, 'u_damage');
+      this.uChromaLoc = gl.getUniformLocation(prog, 'u_chroma');
+      this.uModeLoc = gl.getUniformLocation(prog, 'u_mode');
+
+    } catch (e) {
+      console.warn('Error inicializando WebGL Shaders:', e);
+      this.gl = null;
+    }
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    localStorage.setItem('beato_pedro_shader_enabled', this.enabled ? 'true' : 'false');
+    if (this.canvas) {
+      this.canvas.style.display = this.enabled ? 'block' : 'none';
+    }
+    return this.enabled;
+  }
+
+  triggerDamage() {
+    this.damageUniform = 1.0;
+  }
+
+  triggerDash() {
+    this.chromaUniform = 1.0;
+  }
+
+  render(isRPG = true) {
+    if (!this.enabled || !this.gl || !this.program) return;
+
+    const gl = this.gl;
+    this.time += 0.03;
+    if (this.damageUniform > 0.01) this.damageUniform *= 0.88;
+    else this.damageUniform = 0;
+
+    if (this.chromaUniform > 0.01) this.chromaUniform *= 0.85;
+    else this.chromaUniform = 0;
+
+    gl.viewport(0, 0, 960, 540);
+    gl.useProgram(this.program);
+
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.sourceCanvas);
+
+    gl.uniform1f(this.uTimeLoc, this.time);
+    gl.uniform1f(this.uDamageLoc, this.damageUniform);
+    gl.uniform1f(this.uChromaLoc, this.chromaUniform);
+    gl.uniform1i(this.uModeLoc, isRPG ? 1 : 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+}
 
 class AppManager {
   constructor() {
@@ -5143,6 +5372,8 @@ class AppManager {
     this.rpgGame = null;
 
     this.modalElem = document.getElementById('mode-modal');
+    window.shaderPipeline = new WebGLShaderPipeline(document.getElementById('gameCanvas'));
+    this.shaderPipeline = window.shaderPipeline;
     this.pcInstructions = document.getElementById('pc-instructions');
 
     // D-Pad and Action Containers
@@ -5211,7 +5442,7 @@ class AppManager {
 
       if (this.pcInstructions) {
         this.pcInstructions.innerHTML =
-          'Moverse 4 lados: <span>W, A, S, D o Flechas</span> | Esquivar: <span>Espacio</span> | Bendición: <span>J o F</span> | Reiniciar: <span>R</span> | Audio: <span>M</span>';
+          'Moverse 4 lados: <span>W, A, S, D o Flechas</span> | Esquivar: <span>Espacio</span> | Bendición: <span>J o F</span> | Reiniciar: <span>R</span> | Shader: <span>K</span> | Audio: <span>M</span>';
       }
 
       this.rpgGame = new IsometricRPGGame(this.soundEngine, this.priestImage);
@@ -5231,6 +5462,29 @@ class AppManager {
     });
 
     // Mode Switcher in bar & touch top bar
+    const btnShader = document.getElementById('btn-shader-toggle');
+    const touchShader = document.getElementById('touch-shader');
+    const updateShaderBtnText = () => {
+      const active = this.shaderPipeline.enabled;
+      if (btnShader) btnShader.innerText = active ? '✨ SHADER: ACTIVO' : '✨ SHADER: OFF';
+      if (touchShader) touchShader.style.opacity = active ? '1' : '0.5';
+    };
+    if (btnShader) {
+      btnShader.addEventListener('click', () => {
+        this.shaderPipeline.toggle();
+        updateShaderBtnText();
+      });
+      updateShaderBtnText();
+    }
+    if (touchShader) {
+      touchShader.addEventListener('click', (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        this.shaderPipeline.toggle();
+        updateShaderBtnText();
+      });
+    }
+
     document.getElementById('btn-switch-mode-bar').addEventListener('click', () => {
       this.showModeModal();
     });
