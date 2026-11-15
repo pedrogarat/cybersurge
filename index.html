@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>El Beato Pedro vs Mal</title>
   <style>
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -38,11 +39,10 @@
       border: 2px solid #00f0ff;
       background: #090814;
     }
-    /* Escalado responsivo en dispositivos móviles */
     @media (max-width: 980px), (max-height: 560px) {
       #game-container {
         width: 100vw;
-        height: 56.25vw; /* ratio 16:9 */
+        height: 56.25vw;
         max-height: 100vh;
         max-width: 177.78vh;
         border-radius: 0;
@@ -71,148 +71,348 @@
       pointer-events: none;
       z-index: 11;
     }
+
+    /* INSTRUCCIONES Y SELECTOR */
     #instructions-bar {
       margin-top: 10px;
       font-size: 13px;
       color: #a4b3d6;
       display: flex;
-      gap: 20px;
+      gap: 16px;
+      align-items: center;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
+      letter-spacing: 0.5px;
     }
     #instructions-bar span {
       color: #00f0ff;
       font-weight: bold;
     }
+    .btn-mode-switch {
+      background: linear-gradient(135deg, #ff0055, #ffaa00);
+      color: #ffffff;
+      border: none;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 900;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
+      transition: all 0.2s ease;
+      letter-spacing: 1px;
+    }
+    .btn-mode-switch:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(255, 170, 0, 0.8);
+    }
 
-    /* =========================================
-       CONTROLES TÁCTILES PARA MÓVIL (CYBER HUD)
-       ========================================= */
-    #mobile-controls {
+    /* MODAL DE SELECCIÓN DE MODO */
+    #mode-modal {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      pointer-events: none;
-      z-index: 30;
+      background: rgba(5, 4, 15, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 100;
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #ffffff;
+      animation: fadeInModal 0.25s ease-out;
+    }
+    @keyframes fadeInModal {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .modal-title {
+      font-size: 30px;
+      font-weight: 900;
+      color: #ffe600;
+      text-shadow: 0 0 20px rgba(255, 230, 0, 0.6);
+      margin-bottom: 6px;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    .modal-subtitle {
+      font-size: 14px;
+      color: #a4b3d6;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .mode-cards-container {
+      display: flex;
+      gap: 24px;
+      max-width: 840px;
+      width: 100%;
+      justify-content: center;
+    }
+    @media (max-width: 700px) {
+      .mode-cards-container {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .modal-title { font-size: 20px; }
+      .modal-subtitle { font-size: 11px; margin-bottom: 12px; }
+    }
+    .mode-card {
+      flex: 1;
+      background: rgba(18, 16, 38, 0.85);
+      border: 2px solid #00f0ff;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+    }
+    .mode-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.5);
+      border-color: #ffe600;
+    }
+    .mode-card.rpg-card {
+      border-color: #ffaa00;
+      box-shadow: 0 0 20px rgba(255, 170, 0, 0.25);
+    }
+    .mode-card.rpg-card:hover {
+      box-shadow: 0 0 35px rgba(255, 170, 0, 0.6);
+      border-color: #ffd700;
+    }
+    .mode-icon {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+    .mode-card-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #00f0ff;
+      margin-bottom: 6px;
+    }
+    .mode-card.rpg-card .mode-card-title {
+      color: #ffaa00;
+    }
+    .mode-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: rgba(0, 240, 255, 0.2);
+      color: #00f0ff;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    .mode-card.rpg-card .mode-badge {
+      background: rgba(255, 170, 0, 0.2);
+      color: #ffaa00;
+    }
+    .mode-desc {
+      font-size: 13px;
+      line-height: 1.4;
+      color: #cbd5e1;
+      margin-bottom: 16px;
+      flex-grow: 1;
+    }
+    .btn-select-mode {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #00f0ff;
+      color: #05050d;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-select-mode:hover {
+      background: #ffffff;
+      box-shadow: 0 0 15px #00f0ff;
+    }
+    .mode-card.rpg-card .btn-select-mode {
+      background: #ffaa00;
+      color: #05050d;
+    }
+    .mode-card.rpg-card .btn-select-mode:hover {
+      background: #ffd700;
+      box-shadow: 0 0 20px #ffaa00;
+    }
+
+    /* CONTROLES TÁCTILES MÓVILES */
+    #mobile-controls {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 25;
+      pointer-events: none;
       flex-direction: column;
       justify-content: space-between;
       padding: 12px 16px;
     }
+    body.touch-enabled #mobile-controls {
+      display: flex;
+    }
     .mobile-top-bar {
       display: flex;
-      justify-content: flex-end;
-      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      pointer-events: auto;
     }
     .mobile-bottom-bar {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
       width: 100%;
-      padding-bottom: 6px;
-    }
-    /* Inversión de mandos (Salto izquierda, movimiento derecha) */
-    .mobile-bottom-bar.layout-inverted {
-      flex-direction: row-reverse;
+      pointer-events: auto;
     }
     .touch-btn {
-      pointer-events: auto;
-      touch-action: none;
-      background: rgba(16, 12, 38, 0.7);
+      background: rgba(18, 16, 38, 0.85);
       border: 2px solid #00f0ff;
       color: #00f0ff;
-      border-radius: 12px;
       font-family: inherit;
-      font-weight: 800;
-      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4), inset 0 0 10px rgba(0, 240, 255, 0.2);
+      font-weight: bold;
+      border-radius: 8px;
+      touch-action: none;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.08s ease, background 0.08s ease;
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+      transition: background 0.1s, transform 0.1s;
     }
     .touch-btn:active, .touch-btn.active {
-      background: rgba(0, 240, 255, 0.45);
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.8), inset 0 0 14px rgba(0, 240, 255, 0.5);
-      transform: scale(0.92);
+      background: rgba(0, 240, 255, 0.4);
+      transform: scale(0.95);
     }
     .touch-btn-small {
-      padding: 6px 12px;
+      height: 34px;
+      padding: 0 10px;
       font-size: 11px;
-      letter-spacing: 1px;
-      border-radius: 8px;
-      border-color: #a4b3d6;
-      color: #e2e8f0;
+      border-radius: 6px;
     }
-    .touch-dpad {
+    .touch-btn-mode {
+      background: linear-gradient(135deg, #ff0055, #ffaa00);
+      border-color: #ffd700;
+      color: #ffffff;
+      font-weight: 900;
+    }
+    .touch-dpad-2way {
       display: flex;
-      gap: 14px;
+      gap: 12px;
     }
     .touch-dir {
-      width: 66px;
-      height: 66px;
-      font-size: 26px;
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
       border-radius: 50%;
     }
-    .touch-jump {
-      width: 80px;
-      height: 80px;
-      font-size: 13px;
-      border-radius: 50%;
-      border-color: #ff0055;
-      color: #ff0055;
-      box-shadow: 0 0 16px rgba(255, 0, 85, 0.5), inset 0 0 12px rgba(255, 0, 85, 0.25);
+    .touch-dpad-4way {
+      display: grid;
+      grid-template-columns: 48px 48px 48px;
+      grid-template-rows: 48px 48px 48px;
+      gap: 4px;
+      width: 152px;
+      height: 152px;
     }
-    .touch-jump:active, .touch-jump.active {
-      background: rgba(255, 0, 85, 0.45);
-      box-shadow: 0 0 24px rgba(255, 0, 85, 0.9), inset 0 0 18px rgba(255, 0, 85, 0.6);
+    .touch-dpad-btn {
+      width: 48px;
+      height: 48px;
+      font-size: 18px;
+      border-radius: 10px;
+      background: rgba(22, 20, 48, 0.88);
+      border: 2px solid #ffaa00;
+      color: #ffaa00;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(255, 170, 0, 0.3);
+      touch-action: none;
+    }
+    .touch-dpad-btn:active, .touch-dpad-btn.active {
+      background: rgba(255, 170, 0, 0.4);
       transform: scale(0.92);
     }
-
-    @media (hover: hover) and (pointer: fine) and (min-width: 981px) {
-      body:not(.touch-enabled) #mobile-controls {
-        display: none;
-      }
+    .touch-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-
-    /* Aviso de rotación para móvil */
+    .touch-action-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      font-size: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+    .touch-jump {
+      width: 78px;
+      height: 62px;
+      border-radius: 12px;
+      font-size: 14px;
+      background: rgba(255, 0, 85, 0.25);
+      border-color: #ff0055;
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+    }
+    .touch-dodge {
+      background: rgba(0, 240, 255, 0.25);
+      border-color: #00f0ff;
+      color: #00f0ff;
+    }
+    .touch-bless {
+      background: rgba(255, 215, 0, 0.25);
+      border-color: #ffd700;
+      color: #ffd700;
+    }
     #orientation-warning {
       display: none;
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(5, 5, 13, 0.95);
-      z-index: 999;
+      width: 100vw;
+      height: 100vh;
+      background: #05050d;
+      color: #00f0ff;
+      z-index: 9999;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      color: #00f0ff;
-      font-weight: 800;
+      padding: 20px;
       font-size: 18px;
-      padding: 24px;
+      font-weight: bold;
     }
-    .orient-icon {
-      font-size: 46px;
-      margin-bottom: 14px;
-      animation: rotatePhone 2.2s infinite ease-in-out;
+    #orientation-warning .orient-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      animation: rotateIcon 2s infinite ease-in-out;
     }
-    @keyframes rotatePhone {
-      0% { transform: rotate(0deg); }
-      40% { transform: rotate(90deg); }
-      70% { transform: rotate(90deg); }
-      100% { transform: rotate(0deg); }
+    @keyframes rotateIcon {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(90deg); }
     }
-    @media screen and (orientation: portrait) and (max-width: 768px) {
+    @media (max-width: 900px) and (orientation: portrait) {
       #orientation-warning {
         display: flex;
       }
     }
+
   </style>
 </head>
 <body>
@@ -226,50 +426,105 @@
     </div>
   </div>
 
+  <!-- Modal Selector de Modo Inicial y Dinámico -->
+  <div id="mode-modal" style="display: none;">
+    <div class="modal-title">EL BEATO PEDRO VS MAL</div>
+    <div class="modal-subtitle">Selecciona el modo de juego para comenzar tu aventura</div>
+
+    <div class="mode-cards-container">
+      <!-- MODO 1: PLATAFORMAS 2D -->
+      <div class="mode-card" id="btn-choose-platformer">
+        <div class="mode-icon">🏃‍♂️</div>
+        <div class="mode-badge">ACCIÓN RETRO ARCADE</div>
+        <div class="mode-card-title">Modo Plataformas 2D</div>
+        <div class="mode-desc">
+          Salta entre plataformas cibernéticas, esquiva trampas de pinchos y lásers, y lanza tu sombrero sagrado contra las hordas de diablillos en 5 fases de intensidad creciente.
+        </div>
+        <button class="btn-select-mode">JUGAR PLATAFORMAS 2D</button>
+      </div>
+
+      <!-- MODO 2: RPG ISOMÉTRICO -->
+      <div class="mode-card rpg-card" id="btn-choose-rpg">
+        <div class="mode-icon">🗺️</div>
+        <div class="mode-badge">AVENTURA & EXPLORACIÓN</div>
+        <div class="mode-card-title">Modo RPG Isométrico</div>
+        <div class="mode-desc">
+          Explora 4 escenarios conectados: La Aldea, El Bosque, El Cementerio y La Colina. Recoge los Corazones Sagrados, esquiva la evolución de los diablillos (acechadores, hechiceros con fuego y cazadores veloces) y encuentra la entrada a la Gran Iglesia para consagrarla. Desplazamiento libre en 4 direcciones.
+        </div>
+        <button class="btn-select-mode">JUGAR RPG ISOMÉTRICO</button>
+      </div>
+    </div>
+  </div>
+
   <div id="game-container">
-    <!-- Canvas 2D Retro -->
     <canvas id="gameCanvas" width="960" height="540"></canvas>
-    
     <div class="vignette"></div>
 
     <!-- Controles táctiles virtuales en pantalla -->
     <div id="mobile-controls">
       <div class="mobile-top-bar">
-        <button id="touch-layout" class="touch-btn touch-btn-small" title="Invertir posición de mandos">⇄ MANDOS: DIESTRO</button>
+        <button id="touch-mode" class="touch-btn touch-btn-small touch-btn-mode">🎮 MODO</button>
+        <button id="touch-layout" class="touch-btn touch-btn-small">⇄ INVERTIR</button>
         <button id="touch-mute" class="touch-btn touch-btn-small">🔊 AUDIO</button>
         <button id="touch-restart" class="touch-btn touch-btn-small">🔄 REINICIAR</button>
       </div>
+
       <div class="mobile-bottom-bar">
-        <div class="touch-dpad">
+        <!-- D-PAD PARA PLATAFORMAS (2-way) -->
+        <div id="dpad-platformer" class="touch-dpad-2way">
           <button id="touch-left" class="touch-btn touch-dir">◀</button>
           <button id="touch-right" class="touch-btn touch-dir">▶</button>
         </div>
-        <div class="touch-actions">
-          <button id="touch-hat" class="touch-btn touch-btn-small" style="display:none; width:70px; height:70px; border-radius:50%; font-size:24px; border-color:#ffffff; color:#ffffff; margin-right:12px; background:rgba(18,18,24,0.9); box-shadow:0 0 14px rgba(255,255,255,0.6);">👒</button>
+
+        <!-- D-PAD PARA RPG (4-way isométrico) -->
+        <div id="dpad-rpg" class="touch-dpad-4way" style="display: none;">
+          <div></div>
+          <button id="touch-up" class="touch-dpad-btn">▲</button>
+          <div></div>
+          <button id="touch-rpg-left" class="touch-dpad-btn">◀</button>
+          <div></div>
+          <button id="touch-rpg-right" class="touch-dpad-btn">▶</button>
+          <div></div>
+          <button id="touch-down" class="touch-dpad-btn">▼</button>
+          <div></div>
+        </div>
+
+        <!-- ACCIONES PLATAFORMAS -->
+        <div id="actions-platformer" class="touch-actions">
+          <button id="touch-hat" class="touch-btn touch-btn-small" style="display:none; width:65px; height:65px; border-radius:50%; font-size:22px; border-color:#ffffff; color:#ffffff; background:rgba(18,18,24,0.9); box-shadow:0 0 14px rgba(255,255,255,0.6);">👒</button>
           <button id="touch-jump" class="touch-btn touch-jump">▲ SALTO</button>
+        </div>
+
+        <!-- ACCIONES RPG -->
+        <div id="actions-rpg" class="touch-actions" style="display: none;">
+          <button id="touch-dodge" class="touch-btn touch-action-circle touch-dodge">
+            <span style="font-size:16px;">⚡</span>
+            <span>ESQUIVAR</span>
+          </button>
+          <button id="touch-bless" class="touch-btn touch-action-circle touch-bless">
+            <span style="font-size:16px;">✨</span>
+            <span>BENDICIÓN</span>
+          </button>
         </div>
       </div>
     </div>
   </div>
 
   <div id="instructions-bar">
-    <div>Moverse: <span>A/D o Flechas</span></div>
-    <div>Saltar: <span>Espacio / W / Arriba</span></div>
-    <div>Lanzar Sombrero (Fase 2+): <span>Tecla J o Tecla F</span></div>
-    <div>Probar Fases: <span>Teclas 1 a 5</span></div>
-    <div>Invertir Mandos: <span>Tecla I</span></div>
-    <div>Silenciar: <span>M</span></div>
+    <div id="pc-instructions">Cargando instrucciones...</div>
+    <button id="btn-switch-mode-bar" class="btn-mode-switch">🎮 CAMBIAR MODO</button>
   </div>
 
+
 <script>
+
 /**
- * EL BEATO PEDRO VS MAL: PROTOCOL ZERO
- * El Beato Pedro vs Mal - 2D Retro Arcade y lanzamiento de sombrero teledirigido
+ * EL BEATO PEDRO VS MAL
+ * Modos duales seleccionables:
+ * 1. Modo Plataformas 2D (Acción Retro: Protocol Zero)
+ * 2. Modo RPG Isométrico (Aventura y Exploración: La Gran Iglesia)
  */
 
-// ==========================================
-// 1. SISTEMA DE AUDIO PROCEDURAL (WEB AUDIO)
-// ==========================================
 class SoundEngine {
   constructor() {
     this.ctx = null;
@@ -529,6 +784,138 @@ class SoundEngine {
       this.currentStep++;
     }, stepInterval);
   }
+
+  stopBGM() {
+    if (this.bgmTimer) {
+      clearInterval(this.bgmTimer);
+      this.bgmTimer = null;
+    }
+  }
+
+  startRPGBGM(scenarioId) {
+    this.stopBGM();
+    if (this.muted || !this.ctx) return;
+    
+    const bpm = scenarioId === 'cementerio' ? 75 : (scenarioId === 'iglesia' ? 90 : 100);
+    const interval = (60 / bpm / 2) * 1000;
+    
+    const scales = {
+      aldea: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25],
+      bosque: [220.00, 246.94, 261.63, 293.66, 329.63, 392.00],
+      cementerio: [146.83, 174.61, 220.00, 261.63, 293.66],
+      iglesia: [261.63, 329.63, 392.00, 523.25, 659.25, 783.99]
+    };
+
+    const notes = scales[scenarioId] || scales.aldea;
+    let step = 0;
+
+    this.bgmTimer = setInterval(() => {
+      if (this.muted || !this.ctx || this.ctx.state !== 'running') return;
+      
+      const now = this.ctx.currentTime;
+      if (step % 2 === 0) {
+        const root = notes[0] / (scenarioId === 'cementerio' ? 2 : 1);
+        this.playTone(root, 'sine', 0.4, 0.12, 0.001);
+      }
+      if (step % 3 === 0) {
+        const n = notes[(step * 2) % notes.length];
+        this.playTone(n, 'triangle', 0.25, 0.08, 0.001);
+      }
+      step++;
+    }, interval);
+  }
+
+  playHeartCollect() {
+    if (this.muted || !this.ctx) return;
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, i) => {
+      setTimeout(() => {
+        this.playTone(freq, 'sine', 0.22, 0.25, 0.001);
+      }, i * 65);
+    });
+  }
+
+  playChurchBell() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      [130.81, 261.63, 392.00, 523.25, 659.25, 880.00].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = idx === 0 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        const vol = 0.35 / (idx + 1);
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(now);
+        osc.stop(now + 3.6);
+      });
+    } catch(e) {}
+  }
+
+  playDashSound() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(450, now);
+      osc.frequency.exponentialRampToValueAtTime(150, now + 0.22);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.23);
+    } catch(e) {}
+  }
+
+  playFireballSound() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.31);
+    } catch(e) {}
+  }
+
+  playBlessingPulse() {
+    if (this.muted || !this.ctx) return;
+    [440, 554.37, 659.25, 880].forEach((freq, i) => {
+      this.playTone(freq, 'triangle', 0.6, 0.22, 0.001);
+    });
+  }
+
+  playDiablilloAlert() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(580, now);
+      osc.frequency.exponentialRampToValueAtTime(950, now + 0.12);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.13);
+    } catch(e) {}
+  }
+
 }
 
 const audio = new SoundEngine();
@@ -1807,7 +2194,8 @@ function buildLevels() {
 // ==========================================
 // 6. CONTROLADOR PRINCIPAL DEL JUEGO (MOTOR 2D RETRO)
 // ==========================================
-class Game {
+
+class PlatformerGame {
   constructor() {
     this.canvas2D = document.getElementById('gameCanvas');
     this.ctx = this.canvas2D.getContext('2d');
@@ -1828,6 +2216,8 @@ class Game {
     this.hatTipTimer = 0;
 
     this.levels = buildLevels();
+    this.active = true;
+    this.animId = null;
     this.currentLevelIdx = 0;
     this.score = 0;
     this.lives = 3;
@@ -1843,7 +2233,7 @@ class Game {
     this.loadLevel(0);
 
     this.loop = this.loop.bind(this);
-    requestAnimationFrame(this.loop);
+    this.animId = requestAnimationFrame(this.loop);
   }
 
   throwHat() {
@@ -2736,7 +3126,14 @@ class Game {
     this.ctx.restore();
   }
 
+  destroy() {
+    if (this.animId) cancelAnimationFrame(this.animId);
+    this.animId = null;
+    this.active = false;
+  }
+
   loop() {
+    if (!this.active) return;
     this.update();
     this.draw();
     requestAnimationFrame(this.loop);
@@ -2744,9 +3141,2194 @@ class Game {
 }
 
 // Inicializar el juego
+
+
+// ==========================================
+// 7. MOTOR RPG ISOMÉTRICO: EL BEATO PEDRO
+// ==========================================
+
+const ISO_TILE_W = 64;
+const ISO_TILE_H = 32;
+
+function isoWorldToScreen(wx, wy, camX = 0, camY = 0, originX = 480, originY = 270) {
+  return {
+    sx: (wx - wy) * (ISO_TILE_W / 2) + originX - camX,
+    sy: (wx + wy) * (ISO_TILE_H / 2) + originY - camY
+  };
+}
+
+function isoScreenToWorld(sx, sy, camX = 0, camY = 0, originX = 480, originY = 270) {
+  const dx = sx - (originX - camX);
+  const dy = sy - (originY - camY);
+  return {
+    wx: (dy / (ISO_TILE_H / 2) + dx / (ISO_TILE_W / 2)) / 2,
+    wy: (dy / (ISO_TILE_H / 2) - dx / (ISO_TILE_W / 2)) / 2
+  };
+}
+
+class RPGParticleSystem {
+  constructor() {
+    this.particles = [];
+  }
+  emit(wx, wy, color, count = 4, speed = 0.04, life = 30, size = 3, shape = 'circle') {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const spd = (0.3 + Math.random() * 0.7) * speed;
+      this.particles.push({
+        wx,
+        wy,
+        z: 0.1 + Math.random() * 0.3,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        vz: 0.01 + Math.random() * 0.03,
+        color,
+        life,
+        maxLife: life,
+        size,
+        shape
+      });
+    }
+  }
+  update() {
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.wx += p.vx;
+      p.wy += p.vy;
+      p.z += p.vz;
+      p.vz -= 0.0008;
+      p.life--;
+      if (p.life <= 0) {
+        this.particles.splice(i, 1);
+      }
+    }
+  }
+  draw(ctx, camX, camY) {
+    for (const p of this.particles) {
+      const s = isoWorldToScreen(p.wx, p.wy, camX, camY);
+      const sy = s.sy - p.z * 50;
+      const alpha = Math.max(0, p.life / p.maxLife);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(s.sx, sy, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+}
+
+class RPGFireball {
+  constructor(wx, wy, targetWx, targetWy) {
+    this.wx = wx;
+    this.wy = wy;
+    this.z = 0.35;
+    const dx = targetWx - wx;
+    const dy = targetWy - wy;
+    const dist = Math.hypot(dx, dy) || 1;
+    const speed = 0.11;
+    this.vx = (dx / dist) * speed;
+    this.vy = (dy / dist) * speed;
+    this.life = 130;
+    this.radius = 0.35;
+    this.isDead = false;
+  }
+  update(obstacles, particleSystem) {
+    this.life--;
+    if (this.life <= 0) {
+      this.isDead = true;
+      return;
+    }
+    this.wx += this.vx;
+    this.wy += this.vy;
+
+    if (particleSystem && Math.random() < 0.6) {
+      particleSystem.emit(this.wx, this.wy, '#ff3b00', 1, 0.02, 14, 3);
+      particleSystem.emit(this.wx, this.wy, '#ffb700', 1, 0.01, 10, 2);
+    }
+
+    const curTileX = Math.floor(this.wx);
+    const curTileY = Math.floor(this.wy);
+    if (obstacles.has(curTileX + ',' + curTileY)) {
+      this.isDead = true;
+      if (particleSystem) {
+        particleSystem.emit(this.wx, this.wy, '#ff5500', 6, 0.06, 18, 3);
+      }
+    }
+  }
+  draw(ctx, camX, camY) {
+    const s = isoWorldToScreen(this.wx, this.wy, camX, camY);
+    const sy = s.sy - this.z * 50;
+
+    ctx.save();
+    ctx.shadowColor = '#ff3300';
+    ctx.shadowBlur = 12;
+
+    const grad = ctx.createRadialGradient(s.sx, sy, 1, s.sx, sy, 10);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.3, '#ffcc00');
+    grad.addColorStop(0.8, '#ff3300');
+    grad.addColorStop(1, 'rgba(255, 30, 0, 0)');
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(s.sx, sy, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#660022';
+    ctx.beginPath();
+    ctx.arc(s.sx, sy, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+class RPGHeart {
+  constructor(id, wx, wy, scenarioId) {
+    this.id = id;
+    this.wx = wx;
+    this.wy = wy;
+    this.scenarioId = scenarioId;
+    this.hoverPhase = Math.random() * Math.PI * 2;
+    this.radius = 0.45;
+  }
+  update(particleSystem) {
+    this.hoverPhase += 0.05;
+    if (particleSystem && Math.random() < 0.12) {
+      particleSystem.emit(this.wx, this.wy, '#ffd700', 1, 0.02, 22, 2, 'star');
+    }
+  }
+  draw(ctx, camX, camY) {
+    const s = isoWorldToScreen(this.wx, this.wy, camX, camY);
+    const bounce = Math.sin(this.hoverPhase) * 6;
+    const sy = s.sy - 24 + bounce;
+
+    ctx.save();
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 4, 10 - bounce * 0.2, 5 - bounce * 0.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Glow
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 14 + Math.sin(this.hoverPhase * 2) * 5;
+
+    // Heart shape
+    ctx.fillStyle = '#ff1144';
+    ctx.beginPath();
+    const hx = s.sx;
+    const hy = sy;
+    ctx.moveTo(hx, hy + 4);
+    ctx.bezierCurveTo(hx - 9, hy - 7, hx - 13, hy + 6, hx, hy + 15);
+    ctx.bezierCurveTo(hx + 13, hy + 6, hx + 9, hy - 7, hx, hy + 4);
+    ctx.fill();
+
+    // Golden cross highlight
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(hx - 1, hy + 2, 2, 7);
+    ctx.fillRect(hx - 4, hy + 4, 8, 2);
+
+    ctx.restore();
+  }
+}
+
+class RPGDiablillo {
+  constructor(type, wx, wy, scenarioId) {
+    this.type = type; // 'travieso', 'acechador', 'hechicero', 'archidiablillo'
+    this.wx = wx;
+    this.wy = wy;
+    this.origWx = wx;
+    this.origWy = wy;
+    this.scenarioId = scenarioId;
+    this.facing = 1;
+    this.radius = 0.38;
+
+    if (type === 'travieso') {
+      this.speed = 0.04;
+      this.color = '#ff3344';
+      this.hornColor = '#111111';
+      this.detectionRadius = 3.5;
+      this.name = 'Diablillo Travieso';
+    } else if (type === 'acechador') {
+      this.speed = 0.075;
+      this.color = '#e62255';
+      this.hornColor = '#00ff88';
+      this.detectionRadius = 5.5;
+      this.name = 'Diablillo Acechador';
+    } else if (type === 'hechicero') {
+      this.speed = 0.04;
+      this.color = '#9911bb';
+      this.hornColor = '#ffbb00';
+      this.detectionRadius = 6.5;
+      this.name = 'Diablillo Hechicero';
+      this.shootCooldown = 180;
+      this.shootTimer = 60 + Math.floor(Math.random() * 60);
+      this.isCharging = false;
+      this.chargeTimer = 0;
+    } else { // 'archidiablillo'
+      this.speed = 0.085;
+      this.color = '#770011';
+      this.hornColor = '#ff0033';
+      this.detectionRadius = 7.0;
+      this.name = 'Archidiablillo Infernal';
+      this.dashCooldown = 180;
+      this.dashTimer = 60 + Math.floor(Math.random() * 60);
+      this.isDashing = false;
+      this.dashDuration = 0;
+      this.dashVx = 0;
+      this.dashVy = 0;
+    }
+
+    this.state = 'patrol';
+    this.patrolTimer = 0;
+    this.patrolTarget = { wx, wy };
+    this.wingPhase = Math.random() * Math.PI * 2;
+    this.alertTimer = 0;
+  }
+
+  update(player, obstacles, fireballs, particleSystem, soundEngine) {
+    this.wingPhase += 0.25;
+
+    const dx = player.wx - this.wx;
+    const dy = player.wy - this.wy;
+    const dist = Math.hypot(dx, dy);
+
+    if (dx > 0.05) this.facing = 1;
+    else if (dx < -0.05) this.facing = -1;
+
+    if (this.type === 'travieso') {
+      this.patrolTimer--;
+      if (this.patrolTimer <= 0) {
+        this.patrolTimer = 90 + Math.floor(Math.random() * 110);
+        const angle = Math.random() * Math.PI * 2;
+        const pDist = 1 + Math.random() * 2.5;
+        this.patrolTarget.wx = this.origWx + Math.cos(angle) * pDist;
+        this.patrolTarget.wy = this.origWy + Math.sin(angle) * pDist;
+      }
+      this.moveTowards(this.patrolTarget.wx, this.patrolTarget.wy, this.speed, obstacles);
+
+    } else if (this.type === 'acechador') {
+      if (dist < this.detectionRadius) {
+        if (this.state !== 'chase') {
+          this.state = 'chase';
+          this.alertTimer = 45;
+          if (soundEngine) soundEngine.playDiablilloAlert();
+          if (particleSystem) particleSystem.emit(this.wx, this.wy, '#ffff00', 3, 0.03, 15, 2);
+        }
+        this.moveTowards(player.wx, player.wy, this.speed, obstacles);
+      } else {
+        this.state = 'patrol';
+        this.patrolTimer--;
+        if (this.patrolTimer <= 0) {
+          this.patrolTimer = 90 + Math.floor(Math.random() * 100);
+          const angle = Math.random() * Math.PI * 2;
+          const pDist = 1.5 + Math.random() * 2.5;
+          this.patrolTarget.wx = this.origWx + Math.cos(angle) * pDist;
+          this.patrolTarget.wy = this.origWy + Math.sin(angle) * pDist;
+        }
+        this.moveTowards(this.patrolTarget.wx, this.patrolTarget.wy, this.speed * 0.6, obstacles);
+      }
+
+    } else if (this.type === 'hechicero') {
+      if (this.isCharging) {
+        this.chargeTimer--;
+        if (particleSystem && Math.random() < 0.6) {
+          particleSystem.emit(this.wx, this.wy, '#bb00ff', 1, 0.04, 15, 3);
+        }
+        if (this.chargeTimer <= 0) {
+          this.isCharging = false;
+          if (fireballs) {
+            fireballs.push(new RPGFireball(this.wx, this.wy, player.wx, player.wy));
+            if (soundEngine) soundEngine.playFireballSound();
+          }
+          this.shootTimer = this.shootCooldown;
+        }
+      } else {
+        this.shootTimer--;
+        if (dist < this.detectionRadius) {
+          if (this.shootTimer <= 0 && dist > 1.2) {
+            this.isCharging = true;
+            this.chargeTimer = 35;
+            if (particleSystem) particleSystem.emit(this.wx, this.wy, '#9900ff', 8, 0.05, 25, 3);
+          } else {
+            if (dist > 3.2) {
+              this.moveTowards(player.wx, player.wy, this.speed, obstacles);
+            } else if (dist < 2.0) {
+              this.moveTowards(this.wx - dx, this.wy - dy, this.speed * 0.8, obstacles);
+            }
+          }
+        } else {
+          this.patrolTimer--;
+          if (this.patrolTimer <= 0) {
+            this.patrolTimer = 110;
+            const angle = Math.random() * Math.PI * 2;
+            this.patrolTarget.wx = this.origWx + Math.cos(angle) * 2;
+            this.patrolTarget.wy = this.origWy + Math.sin(angle) * 2;
+          }
+          this.moveTowards(this.patrolTarget.wx, this.patrolTarget.wy, this.speed * 0.5, obstacles);
+        }
+      }
+
+    } else if (this.type === 'archidiablillo') {
+      if (this.isDashing) {
+        this.dashDuration--;
+        this.wx += this.dashVx;
+        this.wy += this.dashVy;
+        if (particleSystem) {
+          particleSystem.emit(this.wx, this.wy, '#ff0033', 2, 0.05, 12, 3);
+          particleSystem.emit(this.wx, this.wy, '#ffaa00', 1, 0.02, 10, 2);
+        }
+        if (this.dashDuration <= 0) {
+          this.isDashing = false;
+          this.dashTimer = this.dashCooldown;
+        }
+      } else {
+        this.dashTimer--;
+        if (dist < this.detectionRadius) {
+          if (this.dashTimer <= 0 && dist < 4.5 && dist > 1.0) {
+            this.isDashing = true;
+            this.dashDuration = 18;
+            const dashSpeed = 0.20;
+            this.dashVx = (dx / dist) * dashSpeed;
+            this.dashVy = (dy / dist) * dashSpeed;
+            if (soundEngine) soundEngine.playDashSound();
+            if (particleSystem) particleSystem.emit(this.wx, this.wy, '#ff2200', 10, 0.08, 20, 4);
+          } else {
+            this.moveTowards(player.wx, player.wy, this.speed, obstacles);
+          }
+        } else {
+          this.patrolTimer--;
+          if (this.patrolTimer <= 0) {
+            this.patrolTimer = 80;
+            const angle = Math.random() * Math.PI * 2;
+            this.patrolTarget.wx = this.origWx + Math.cos(angle) * 3;
+            this.patrolTarget.wy = this.origWy + Math.sin(angle) * 3;
+          }
+          this.moveTowards(this.patrolTarget.wx, this.patrolTarget.wy, this.speed * 0.5, obstacles);
+        }
+      }
+    }
+
+    if (this.alertTimer > 0) this.alertTimer--;
+  }
+
+  moveTowards(tx, ty, spd, obstacles) {
+    const dx = tx - this.wx;
+    const dy = ty - this.wy;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 0.05) return;
+
+    const vx = (dx / dist) * spd;
+    const vy = (dy / dist) * spd;
+
+    const nextX = this.wx + vx;
+    const nextY = this.wy + vy;
+
+    if (!this.isObstacle(nextX, nextY, obstacles)) {
+      this.wx = nextX;
+      this.wy = nextY;
+    } else if (!this.isObstacle(nextX, this.wy, obstacles)) {
+      this.wx = nextX;
+    } else if (!this.isObstacle(this.wx, nextY, obstacles)) {
+      this.wy = nextY;
+    }
+  }
+
+  isObstacle(wx, wy, obstacles) {
+    const tx = Math.floor(wx);
+    const ty = Math.floor(wy);
+    return obstacles.has(tx + ',' + ty);
+  }
+
+  draw(ctx, camX, camY) {
+    const s = isoWorldToScreen(this.wx, this.wy, camX, camY);
+    const floatY = Math.sin(this.wingPhase) * 4;
+    const sy = s.sy - 18 + floatY;
+
+    ctx.save();
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 2, 9, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Alert badge
+    if (this.alertTimer > 0) {
+      ctx.fillStyle = '#ffea00';
+      ctx.font = 'bold 16px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('!', s.sx, sy - 20);
+    }
+
+    // Charging indicator for Sorcerer
+    if (this.isCharging) {
+      ctx.strokeStyle = '#bb00ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(s.sx, sy, 16 + Math.sin(this.wingPhase * 2) * 3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.translate(s.sx, sy);
+    if (this.facing === -1) {
+      ctx.scale(-1, 1);
+    }
+
+    // Wings
+    const wingFlap = Math.sin(this.wingPhase) * 6;
+    ctx.fillStyle = '#220011';
+    ctx.beginPath();
+    ctx.moveTo(-4, -4);
+    ctx.lineTo(-15, -12 - wingFlap);
+    ctx.lineTo(-8, 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 9, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Front wing
+    ctx.fillStyle = '#110005';
+    ctx.beginPath();
+    ctx.moveTo(2, -4);
+    ctx.lineTo(-12, -10 - wingFlap);
+    ctx.lineTo(-4, 4);
+    ctx.closePath();
+    ctx.fill();
+
+    // Horns
+    ctx.fillStyle = this.hornColor;
+    ctx.beginPath();
+    ctx.moveTo(-4, -8);
+    ctx.lineTo(-7, -18);
+    ctx.lineTo(-2, -9);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(4, -8);
+    ctx.lineTo(7, -18);
+    ctx.lineTo(2, -9);
+    ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = '#ffff00';
+    ctx.beginPath();
+    ctx.arc(3, -2, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff0000';
+    ctx.beginPath();
+    ctx.arc(4, -2, 1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mouth
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(3, 3, 2.5, 0.2, Math.PI * 0.8);
+    ctx.stroke();
+
+    // Tail
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-6, 6);
+    ctx.quadraticCurveTo(-14, 8 + Math.sin(this.wingPhase) * 3, -13, 14);
+    ctx.stroke();
+
+    ctx.fillStyle = '#110005';
+    ctx.beginPath();
+    ctx.moveTo(-13, 14);
+    ctx.lineTo(-16, 17);
+    ctx.lineTo(-11, 18);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+class RPGPlayer {
+  constructor(wx, wy) {
+    this.wx = wx;
+    this.wy = wy;
+    this.speed = 0.085;
+    this.facing = 1;
+    this.radius = 0.38;
+
+    this.lives = 3;
+    this.maxLives = 3;
+    this.invincibilityTimer = 0;
+    this.walkAnimTimer = 0;
+    this.isMoving = false;
+
+    this.isDashing = false;
+    this.dashTimer = 0;
+    this.dashCooldown = 0;
+    this.dashMaxCooldown = 70;
+    this.dashVx = 0;
+    this.dashVy = 0;
+
+    this.blessingCooldown = 0;
+    this.blessingMaxCooldown = 140;
+    this.blessingEffect = 0;
+
+    this.knockbackVx = 0;
+    this.knockbackVy = 0;
+  }
+
+  takeDamage(amount = 1, fromWx = 0, fromWy = 0, soundEngine, particleSystem) {
+    if (this.invincibilityTimer > 0 || this.isDashing) return false;
+
+    this.lives = Math.max(0, this.lives - amount);
+    this.invincibilityTimer = 85;
+
+    const kx = this.wx - fromWx;
+    const ky = this.wy - fromWy;
+    const dist = Math.hypot(kx, ky) || 1;
+    this.knockbackVx = (kx / dist) * 0.12;
+    this.knockbackVy = (ky / dist) * 0.12;
+
+    if (soundEngine) soundEngine.playDamage();
+    if (particleSystem) {
+      particleSystem.emit(this.wx, this.wy, '#ff0033', 10, 0.08, 25, 4);
+    }
+    return true;
+  }
+
+  performDodge(inputDirX, inputDirY, soundEngine, particleSystem) {
+    if (this.dashCooldown > 0 || this.isDashing) return false;
+
+    let dirX = inputDirX;
+    let dirY = inputDirY;
+    if (dirX === 0 && dirY === 0) {
+      dirX = this.facing;
+      dirY = 0;
+    }
+
+    const norm = Math.hypot(dirX, dirY) || 1;
+    const dSpeed = 0.22;
+    this.dashVx = (dirX / norm) * dSpeed;
+    this.dashVy = (dirY / norm) * dSpeed;
+
+    this.isDashing = true;
+    this.dashTimer = 16;
+    this.dashCooldown = this.dashMaxCooldown;
+    this.invincibilityTimer = Math.max(this.invincibilityTimer, 20);
+
+    if (soundEngine) soundEngine.playDashSound();
+    if (particleSystem) {
+      particleSystem.emit(this.wx, this.wy, '#00ffff', 8, 0.06, 20, 3, 'star');
+      particleSystem.emit(this.wx, this.wy, '#ffffff', 5, 0.04, 15, 2);
+    }
+    return true;
+  }
+
+  performBlessing(diablillos, fireballs, soundEngine, particleSystem) {
+    if (this.blessingCooldown > 0) return false;
+
+    this.blessingCooldown = this.blessingMaxCooldown;
+    this.blessingEffect = 30;
+
+    if (soundEngine) soundEngine.playBlessingPulse();
+    if (particleSystem) {
+      particleSystem.emit(this.wx, this.wy, '#ffd700', 25, 0.12, 35, 4, 'star');
+      particleSystem.emit(this.wx, this.wy, '#ffffff', 15, 0.08, 30, 3);
+    }
+
+    for (const d of diablillos) {
+      const dist = Math.hypot(d.wx - this.wx, d.wy - this.wy);
+      if (dist < 3.8) {
+        const kx = d.wx - this.wx;
+        const ky = d.wy - this.wy;
+        const dNorm = Math.hypot(kx, ky) || 1;
+        d.wx += (kx / dNorm) * 1.6;
+        d.wy += (ky / dNorm) * 1.6;
+        if (particleSystem) particleSystem.emit(d.wx, d.wy, '#ffd700', 8, 0.05, 20, 3);
+      }
+    }
+
+    if (fireballs) {
+      for (const fb of fireballs) {
+        const dist = Math.hypot(fb.wx - this.wx, fb.wy - this.wy);
+        if (dist < 4.2) {
+          fb.isDead = true;
+          if (particleSystem) particleSystem.emit(fb.wx, fb.wy, '#00ffff', 6, 0.05, 15, 3);
+        }
+      }
+    }
+    return true;
+  }
+
+  update(input, obstacles, particleSystem) {
+    if (this.invincibilityTimer > 0) this.invincibilityTimer--;
+    if (this.dashCooldown > 0) this.dashCooldown--;
+    if (this.blessingCooldown > 0) this.blessingCooldown--;
+    if (this.blessingEffect > 0) this.blessingEffect--;
+
+    if (Math.abs(this.knockbackVx) > 0.005 || Math.abs(this.knockbackVy) > 0.005) {
+      this.wx += this.knockbackVx;
+      this.wy += this.knockbackVy;
+      this.knockbackVx *= 0.85;
+      this.knockbackVy *= 0.85;
+      return;
+    }
+
+    if (this.isDashing) {
+      this.dashTimer--;
+      const nextX = this.wx + this.dashVx;
+      const nextY = this.wy + this.dashVy;
+      if (!this.isObstacle(nextX, nextY, obstacles)) {
+        this.wx = nextX;
+        this.wy = nextY;
+      }
+      if (particleSystem) {
+        particleSystem.emit(this.wx, this.wy, '#00f0ff', 1, 0.02, 12, 2);
+      }
+      if (this.dashTimer <= 0) {
+        this.isDashing = false;
+      }
+      return;
+    }
+
+    let screenVx = 0;
+    let screenVy = 0;
+
+    if (input.up) screenVy -= 1;
+    if (input.down) screenVy += 1;
+    if (input.left) screenVx -= 1;
+    if (input.right) screenVx += 1;
+
+    if (screenVx !== 0 || screenVy !== 0) {
+      this.isMoving = true;
+      this.walkAnimTimer += 0.2;
+
+      const len = Math.hypot(screenVx, screenVy);
+      screenVx = (screenVx / len) * this.speed;
+      screenVy = (screenVy / len) * this.speed;
+
+      const dwx = (screenVy / (ISO_TILE_H / 2) + screenVx / (ISO_TILE_W / 2)) / 2;
+      const dwy = (screenVy / (ISO_TILE_H / 2) - screenVx / (ISO_TILE_W / 2)) / 2;
+
+      if (screenVx > 0.01) this.facing = 1;
+      else if (screenVx < -0.01) this.facing = -1;
+
+      const nextX = this.wx + dwx;
+      const nextY = this.wy + dwy;
+
+      if (!this.isObstacle(nextX, nextY, obstacles)) {
+        this.wx = nextX;
+        this.wy = nextY;
+      } else if (!this.isObstacle(nextX, this.wy, obstacles)) {
+        this.wx = nextX;
+      } else if (!this.isObstacle(this.wx, nextY, obstacles)) {
+        this.wy = nextY;
+      }
+
+      if (particleSystem && Math.random() < 0.2) {
+        particleSystem.emit(this.wx, this.wy, '#d4c29a', 1, 0.015, 12, 2);
+      }
+    } else {
+      this.isMoving = false;
+      this.walkAnimTimer = 0;
+    }
+  }
+
+  isObstacle(wx, wy, obstacles) {
+    const tx = Math.floor(wx);
+    const ty = Math.floor(wy);
+    return obstacles.has(tx + ',' + ty);
+  }
+
+  draw(ctx, camX, camY, priestImg) {
+    const s = isoWorldToScreen(this.wx, this.wy, camX, camY);
+
+    if (this.invincibilityTimer > 0 && Math.floor(this.invincibilityTimer / 4) % 2 === 1) {
+      return;
+    }
+
+    ctx.save();
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 2, 13, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Blessing effect
+    if (this.blessingEffect > 0) {
+      const radius = (30 - this.blessingEffect) * 4.5;
+      ctx.strokeStyle = 'rgba(255, 215, 0, ' + (this.blessingEffect / 30) + ')';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(s.sx, s.sy, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    const bob = this.isMoving ? Math.sin(this.walkAnimTimer) * 3 : 0;
+    const tilt = this.isMoving ? Math.sin(this.walkAnimTimer * 0.5) * 0.08 : 0;
+
+    ctx.translate(s.sx, s.sy - 34 + bob);
+    ctx.rotate(tilt);
+    if (this.facing === -1) {
+      ctx.scale(-1, 1);
+    }
+
+    const spriteW = 56;
+    const spriteH = 70;
+
+    if (priestImg && priestImg.complete && priestImg.naturalWidth > 0) {
+      ctx.drawImage(priestImg, -spriteW / 2, -spriteH / 2, spriteW, spriteH);
+    } else {
+      ctx.fillStyle = '#ff1122';
+      ctx.beginPath();
+      ctx.arc(0, -6, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffd700';
+      ctx.fillRect(-2, -14, 4, 16);
+      ctx.fillRect(-8, -8, 16, 4);
+    }
+
+    ctx.restore();
+  }
+}
+
+// Scenery drawing helpers
+function drawIsoTile(ctx, sx, sy, fillColor, strokeColor = null) {
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(sx + ISO_TILE_W / 2, sy + ISO_TILE_H / 2);
+  ctx.lineTo(sx, sy + ISO_TILE_H);
+  ctx.lineTo(sx - ISO_TILE_W / 2, sy + ISO_TILE_H / 2);
+  ctx.closePath();
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  if (strokeColor) {
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
+}
+
+function drawSceneryObject(ctx, obj, camX, camY) {
+  const s = isoWorldToScreen(obj.wx, obj.wy, camX, camY);
+
+  ctx.save();
+  if (obj.type === 'house') {
+    // Village Stone House
+    const baseW = 60;
+    const baseH = 40;
+    const wallH = 42;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 10, 40, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Walls
+    ctx.fillStyle = '#6e7782';
+    ctx.beginPath();
+    ctx.moveTo(s.sx - baseW / 2, s.sy);
+    ctx.lineTo(s.sx, s.sy + baseH / 2);
+    ctx.lineTo(s.sx, s.sy + baseH / 2 - wallH);
+    ctx.lineTo(s.sx - baseW / 2, s.sy - wallH);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#8995a3';
+    ctx.beginPath();
+    ctx.moveTo(s.sx, s.sy + baseH / 2);
+    ctx.lineTo(s.sx + baseW / 2, s.sy);
+    ctx.lineTo(s.sx + baseW / 2, s.sy - wallH);
+    ctx.lineTo(s.sx, s.sy + baseH / 2 - wallH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Wooden door
+    ctx.fillStyle = '#4a2912';
+    ctx.fillRect(s.sx + 4, s.sy - 16, 12, 18);
+
+    // Glowing window
+    ctx.fillStyle = '#ffea75';
+    ctx.shadowColor = '#ffea75';
+    ctx.shadowBlur = 8;
+    ctx.fillRect(s.sx - 20, s.sy - 24, 10, 10);
+    ctx.shadowBlur = 0;
+
+    // Roof
+    ctx.fillStyle = '#993322';
+    ctx.beginPath();
+    ctx.moveTo(s.sx, s.sy - wallH - 24);
+    ctx.lineTo(s.sx + baseW / 2 + 6, s.sy - wallH);
+    ctx.lineTo(s.sx, s.sy + baseH / 2 - wallH + 4);
+    ctx.lineTo(s.sx - baseW / 2 - 6, s.sy - wallH);
+    ctx.closePath();
+    ctx.fill();
+
+  } else if (obj.type === 'fountain') {
+    // Plaza Fountain
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 4, 32, 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Stone basin
+    ctx.fillStyle = '#7a8594';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy, 28, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Water
+    ctx.fillStyle = '#00bbff';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy - 2, 24, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tier pillar
+    ctx.fillStyle = '#94a1b0';
+    ctx.fillRect(s.sx - 4, s.sy - 22, 8, 20);
+
+    // Top basin
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy - 22, 12, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Water jet
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(s.sx, s.sy - 24);
+    ctx.lineTo(s.sx, s.sy - 32);
+    ctx.stroke();
+
+  } else if (obj.type === 'tree_oak') {
+    // Lush Oak Tree
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 4, 20, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Trunk
+    ctx.fillStyle = '#59381e';
+    ctx.fillRect(s.sx - 5, s.sy - 24, 10, 26);
+
+    // Leaves canopy
+    ctx.fillStyle = '#228833';
+    ctx.beginPath();
+    ctx.arc(s.sx, s.sy - 42, 25, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#2eb344';
+    ctx.beginPath();
+    ctx.arc(s.sx - 8, s.sy - 46, 17, 0, Math.PI * 2);
+    ctx.arc(s.sx + 8, s.sy - 46, 17, 0, Math.PI * 2);
+    ctx.arc(s.sx, s.sy - 55, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+  } else if (obj.type === 'tree_pine') {
+    // Pine Tree
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 4, 18, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Trunk
+    ctx.fillStyle = '#422815';
+    ctx.fillRect(s.sx - 4, s.sy - 18, 8, 20);
+
+    // Cones
+    ctx.fillStyle = '#145228';
+    ctx.beginPath();
+    ctx.moveTo(s.sx, s.sy - 65);
+    ctx.lineTo(s.sx + 18, s.sy - 22);
+    ctx.lineTo(s.sx - 18, s.sy - 22);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#1a6933';
+    ctx.beginPath();
+    ctx.moveTo(s.sx, s.sy - 72);
+    ctx.lineTo(s.sx + 14, s.sy - 38);
+    ctx.lineTo(s.sx - 14, s.sy - 38);
+    ctx.closePath();
+    ctx.fill();
+
+  } else if (obj.type === 'tree_dead') {
+    // Spooky Twisted Graveyard Tree
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 2, 16, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#2b2633';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(s.sx, s.sy);
+    ctx.lineTo(s.sx - 2, s.sy - 25);
+    ctx.lineTo(s.sx + 10, s.sy - 42);
+    ctx.stroke();
+
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(s.sx - 2, s.sy - 25);
+    ctx.lineTo(s.sx - 16, s.sy - 38);
+    ctx.lineTo(s.sx - 22, s.sy - 50);
+    ctx.moveTo(s.sx + 10, s.sy - 42);
+    ctx.lineTo(s.sx + 20, s.sy - 52);
+    ctx.stroke();
+
+  } else if (obj.type === 'tombstone') {
+    // Gothic Tombstone
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 2, 10, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#4a4857';
+    ctx.beginPath();
+    ctx.roundRect(s.sx - 8, s.sy - 22, 16, 22, [6, 6, 0, 0]);
+    ctx.fill();
+
+    // Engraved Cross
+    ctx.fillStyle = '#262430';
+    ctx.fillRect(s.sx - 1, s.sy - 19, 2, 12);
+    ctx.fillRect(s.sx - 4, s.sy - 16, 8, 2);
+
+  } else if (obj.type === 'crypt') {
+    // Mausoleum Crypt
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 4, 34, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#363442';
+    ctx.fillRect(s.sx - 26, s.sy - 30, 52, 30);
+
+    ctx.fillStyle = '#23212b';
+    ctx.fillRect(s.sx - 8, s.sy - 24, 16, 24);
+
+    ctx.fillStyle = '#524f63';
+    ctx.beginPath();
+    ctx.moveTo(s.sx, s.sy - 44);
+    ctx.lineTo(s.sx + 30, s.sy - 28);
+    ctx.lineTo(s.sx - 30, s.sy - 28);
+    ctx.closePath();
+    ctx.fill();
+
+    // Small stone cross
+    ctx.fillStyle = '#8e8b9e';
+    ctx.fillRect(s.sx - 1, s.sy - 52, 2, 10);
+    ctx.fillRect(s.sx - 4, s.sy - 49, 8, 2);
+
+  } else if (obj.type === 'lamp_gold') {
+    // Holy Gold Lamppost
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 2, 8, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(s.sx, s.sy);
+    ctx.lineTo(s.sx, s.sy - 32);
+    ctx.stroke();
+
+    // Glowing flame
+    ctx.fillStyle = '#ffe600';
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(s.sx, s.sy - 35, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+  } else if (obj.type === 'fence_wood') {
+    ctx.strokeStyle = '#734e29';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(s.sx - 14, s.sy - 12);
+    ctx.lineTo(s.sx + 14, s.sy + 2);
+    ctx.moveTo(s.sx - 14, s.sy - 6);
+    ctx.lineTo(s.sx + 14, s.sy + 8);
+    ctx.stroke();
+
+  } else if (obj.type === 'church_cathedral') {
+    // LA GRAN IGLESIA (Cathedral Facade)
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.beginPath();
+    ctx.ellipse(s.sx, s.sy + 15, 120, 50, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Main Cathedral Body
+    ctx.fillStyle = '#d8dbe0';
+    ctx.fillRect(s.sx - 90, s.sy - 90, 180, 95);
+
+    // Left Bell Tower
+    ctx.fillStyle = '#b8bcc4';
+    ctx.fillRect(s.sx - 110, s.sy - 150, 42, 155);
+    // Left Spire Roof
+    ctx.fillStyle = '#3a506b';
+    ctx.beginPath();
+    ctx.moveTo(s.sx - 89, s.sy - 210);
+    ctx.lineTo(s.sx - 65, s.sy - 150);
+    ctx.lineTo(s.sx - 113, s.sy - 150);
+    ctx.closePath();
+    ctx.fill();
+    // Left Bell Arch
+    ctx.fillStyle = '#1e2430';
+    ctx.beginPath();
+    ctx.roundRect(s.sx - 98, s.sy - 135, 18, 28, [9, 9, 0, 0]);
+    ctx.fill();
+    // Left Golden Bell
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(s.sx - 89, s.sy - 122, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Right Bell Tower
+    ctx.fillStyle = '#b8bcc4';
+    ctx.fillRect(s.sx + 68, s.sy - 150, 42, 155);
+    // Right Spire Roof
+    ctx.fillStyle = '#3a506b';
+    ctx.beginPath();
+    ctx.moveTo(s.sx + 89, s.sy - 210);
+    ctx.lineTo(s.sx + 113, s.sy - 150);
+    ctx.lineTo(s.sx + 65, s.sy - 150);
+    ctx.closePath();
+    ctx.fill();
+    // Right Bell Arch
+    ctx.fillStyle = '#1e2430';
+    ctx.beginPath();
+    ctx.roundRect(s.sx + 80, s.sy - 135, 18, 28, [9, 9, 0, 0]);
+    ctx.fill();
+    // Right Golden Bell
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(s.sx + 89, s.sy - 122, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Central Triangular Gable
+    ctx.fillStyle = '#e8ecf2';
+    ctx.beginPath();
+    ctx.moveTo(s.sx, s.sy - 145);
+    ctx.lineTo(s.sx + 72, s.sy - 90);
+    ctx.lineTo(s.sx - 72, s.sy - 90);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cross on Central Gable
+    ctx.fillStyle = '#ffd700';
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 12;
+    ctx.fillRect(s.sx - 3, s.sy - 170, 6, 26);
+    ctx.fillRect(s.sx - 10, s.sy - 162, 20, 6);
+    ctx.shadowBlur = 0;
+
+    // Glowing Rose Window
+    ctx.fillStyle = '#0a1020';
+    ctx.beginPath();
+    ctx.arc(s.sx, s.sy - 105, 24, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = '#00f0ff';
+    ctx.beginPath();
+    ctx.arc(s.sx, s.sy - 105, 19, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Stained glass spokes
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const a = (i * Math.PI) / 4;
+      ctx.moveTo(s.sx, s.sy - 105);
+      ctx.lineTo(s.sx + Math.cos(a) * 19, s.sy - 105 + Math.sin(a) * 19);
+    }
+    ctx.stroke();
+
+    // Grand Church Portal
+    ctx.fillStyle = '#111622';
+    ctx.beginPath();
+    ctx.roundRect(s.sx - 26, s.sy - 48, 52, 52, [26, 26, 0, 0]);
+    ctx.fill();
+
+    // Radiant Golden Doors
+    const doorGlow = ctx.createLinearGradient(s.sx - 20, s.sy - 40, s.sx + 20, s.sy);
+    doorGlow.addColorStop(0, '#ffd700');
+    doorGlow.addColorStop(0.5, '#ffaa00');
+    doorGlow.addColorStop(1, '#ffd700');
+    ctx.fillStyle = doorGlow;
+    ctx.fillRect(s.sx - 22, s.sy - 38, 20, 42);
+    ctx.fillRect(s.sx + 2, s.sy - 38, 20, 42);
+
+    // Archway trim
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function buildRPGWorld() {
+  const scenarios = {
+    aldea: {
+      id: 'aldea',
+      name: 'La Aldea de la Paz',
+      subtitle: 'Comienza tu viaje espiritual',
+      w: 20,
+      h: 20,
+      spawnX: 3.5,
+      spawnY: 10.0,
+      groundType: 'stone',
+      scenery: [
+        { type: 'fountain', wx: 10, wy: 10 },
+        { type: 'house', wx: 4, wy: 4 },
+        { type: 'house', wx: 15, wy: 4 },
+        { type: 'house', wx: 4, wy: 15 },
+        { type: 'tree_oak', wx: 2, wy: 2 },
+        { type: 'tree_oak', wx: 17, wy: 2 },
+        { type: 'tree_oak', wx: 2, wy: 17 },
+        { type: 'tree_oak', wx: 14, wy: 16 },
+        { type: 'fence_wood', wx: 6, wy: 6 },
+        { type: 'fence_wood', wx: 13, wy: 6 },
+        { type: 'fence_wood', wx: 6, wy: 13 },
+        { type: 'lamp_gold', wx: 8, wy: 8 },
+        { type: 'lamp_gold', wx: 12, wy: 12 }
+      ],
+      hearts: [
+        { id: 'h1', wx: 4, wy: 9 },
+        { id: 'h2', wx: 16, wy: 16 },
+        { id: 'h3', wx: 10, wy: 5 }
+      ],
+      diablillos: [
+        { type: 'travieso', wx: 7, wy: 12 },
+        { type: 'travieso', wx: 14, wy: 8 },
+        { type: 'travieso', wx: 12, wy: 16 }
+      ],
+      exits: [
+        { to: 'bosque', minX: 18.2, maxX: 20, minY: 8.5, maxY: 12.5, spawnX: 1.5, spawnY: 10.5, label: 'Al Bosque de las Tentaciones ➔' }
+      ]
+    },
+
+    bosque: {
+      id: 'bosque',
+      name: 'El Bosque de las Tentaciones',
+      subtitle: 'Los diablillos acechadores merodean entre la espesura',
+      w: 22,
+      h: 22,
+      spawnX: 1.5,
+      spawnY: 10.5,
+      groundType: 'forest',
+      scenery: [
+        { type: 'tree_pine', wx: 3, wy: 3 },
+        { type: 'tree_pine', wx: 7, wy: 4 },
+        { type: 'tree_pine', wx: 14, wy: 3 },
+        { type: 'tree_pine', wx: 18, wy: 4 },
+        { type: 'tree_oak', wx: 4, wy: 10 },
+        { type: 'tree_oak', wx: 17, wy: 10 },
+        { type: 'tree_pine', wx: 4, wy: 18 },
+        { type: 'tree_pine', wx: 18, wy: 18 },
+        { type: 'tree_oak', wx: 10, wy: 11 },
+        { type: 'fence_wood', wx: 8, wy: 17 },
+        { type: 'fence_wood', wx: 13, wy: 17 }
+      ],
+      hearts: [
+        { id: 'h4', wx: 5, wy: 5 },
+        { id: 'h5', wx: 17, wy: 5 },
+        { id: 'h6', wx: 6, wy: 16 },
+        { id: 'h7', wx: 16, wy: 16 }
+      ],
+      diablillos: [
+        { type: 'acechador', wx: 8, wy: 7 },
+        { type: 'acechador', wx: 15, wy: 8 },
+        { type: 'acechador', wx: 8, wy: 14 },
+        { type: 'acechador', wx: 15, wy: 14 }
+      ],
+      exits: [
+        { to: 'aldea', minX: 0, maxX: 1.2, minY: 8.5, maxY: 12.5, spawnX: 18.0, spawnY: 10.5, label: '⬅ A la Aldea de la Paz' },
+        { to: 'cementerio', minX: 9.0, maxX: 13.0, minY: 0, maxY: 1.2, spawnX: 11.0, spawnY: 19.5, label: 'Al Cementerio de las Sombras ⬆' }
+      ]
+    },
+
+    cementerio: {
+      id: 'cementerio',
+      name: 'El Cementerio de las Sombras',
+      subtitle: 'Cuidado con las bolas de fuego de los hechiceros',
+      w: 22,
+      h: 22,
+      spawnX: 11.0,
+      spawnY: 19.5,
+      groundType: 'graveyard',
+      scenery: [
+        { type: 'crypt', wx: 5, wy: 5 },
+        { type: 'crypt', wx: 17, wy: 5 },
+        { type: 'tombstone', wx: 4, wy: 11 },
+        { type: 'tombstone', wx: 6, wy: 11 },
+        { type: 'tombstone', wx: 15, wy: 11 },
+        { type: 'tombstone', wx: 17, wy: 11 },
+        { type: 'tombstone', wx: 5, wy: 16 },
+        { type: 'tombstone', wx: 17, wy: 16 },
+        { type: 'tree_dead', wx: 2, wy: 2 },
+        { type: 'tree_dead', wx: 19, wy: 2 },
+        { type: 'tree_dead', wx: 10, wy: 8 },
+        { type: 'tree_dead', wx: 2, wy: 19 },
+        { type: 'tree_dead', wx: 19, wy: 19 }
+      ],
+      hearts: [
+        { id: 'h8', wx: 5, wy: 7 },
+        { id: 'h9', wx: 17, wy: 7 },
+        { id: 'h10', wx: 5, wy: 14 },
+        { id: 'h11', wx: 16, wy: 14 }
+      ],
+      diablillos: [
+        { type: 'hechicero', wx: 7, wy: 7 },
+        { type: 'hechicero', wx: 14, wy: 7 },
+        { type: 'hechicero', wx: 7, wy: 13 },
+        { type: 'hechicero', wx: 14, wy: 13 }
+      ],
+      exits: [
+        { to: 'bosque', minX: 9.0, maxX: 13.0, minY: 20.8, maxY: 22, spawnX: 11.0, spawnY: 2.0, label: '⬇ Al Bosque de las Tentaciones' },
+        { to: 'iglesia', minX: 20.8, maxX: 22, minY: 8.5, maxY: 12.5, spawnX: 1.5, spawnY: 11.0, label: 'A la Colina de la Gran Iglesia ➔' }
+      ]
+    },
+
+    iglesia: {
+      id: 'iglesia',
+      name: 'La Colina de la Gran Iglesia',
+      subtitle: 'Encuentra las puertas del santuario y conságralo',
+      w: 24,
+      h: 24,
+      spawnX: 1.5,
+      spawnY: 11.0,
+      groundType: 'church',
+      scenery: [
+        { type: 'church_cathedral', wx: 12, wy: 5 },
+        { type: 'lamp_gold', wx: 8, wy: 8 },
+        { type: 'lamp_gold', wx: 16, wy: 8 },
+        { type: 'lamp_gold', wx: 8, wy: 14 },
+        { type: 'lamp_gold', wx: 16, wy: 14 },
+        { type: 'tree_oak', wx: 3, wy: 4 },
+        { type: 'tree_oak', wx: 21, wy: 4 },
+        { type: 'tree_oak', wx: 3, wy: 19 },
+        { type: 'tree_oak', wx: 21, wy: 19 }
+      ],
+      hearts: [
+        { id: 'h12', wx: 4, wy: 8 },
+        { id: 'h13', wx: 20, wy: 8 },
+        { id: 'h14', wx: 6, wy: 18 },
+        { id: 'h15', wx: 18, wy: 18 }
+      ],
+      diablillos: [
+        { type: 'archidiablillo', wx: 8, wy: 11 },
+        { type: 'archidiablillo', wx: 16, wy: 11 },
+        { type: 'archidiablillo', wx: 12, wy: 16 }
+      ],
+      exits: [
+        { to: 'cementerio', minX: 0, maxX: 1.2, minY: 8.5, maxY: 12.5, spawnX: 20.0, spawnY: 11.0, label: '⬅ Al Cementerio de las Sombras' }
+      ],
+      churchPortal: {
+        wx: 12.0,
+        wy: 6.2,
+        requiredHearts: 12
+      }
+    }
+  };
+
+  return scenarios;
+}
+
+class IsometricRPGGame {
+  constructor(soundEngine, priestImage) {
+    this.canvas = document.getElementById('gameCanvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.soundEngine = soundEngine;
+    this.priestImage = priestImage;
+
+    this.width = 960;
+    this.height = 540;
+
+    this.input = {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    };
+
+    this.scenarios = buildRPGWorld();
+    this.currentScenarioId = 'aldea';
+    this.currentScenario = this.scenarios[this.currentScenarioId];
+
+    this.collectedHeartIds = new Set();
+    this.totalHeartsCount = 15;
+
+    this.player = new RPGPlayer(this.currentScenario.spawnX, this.currentScenario.spawnY);
+    this.particles = new RPGParticleSystem();
+    this.fireballs = [];
+
+    this.camX = 0;
+    this.camY = 0;
+
+    this.active = true;
+    this.state = 'PLAYING'; // 'PLAYING', 'GAME_OVER', 'VICTORY'
+    this.bannerText = '';
+    this.bannerSubtitle = '';
+    this.bannerTimer = 0;
+
+    this.promptMessage = '';
+    this.promptTimer = 0;
+
+    this.animId = null;
+    this.obstacles = new Set();
+    this.hearts = [];
+    this.diablillos = [];
+
+    this.initScenario(this.currentScenarioId);
+    if (this.soundEngine) this.soundEngine.startRPGBGM(this.currentScenarioId);
+
+    this.loop = this.loop.bind(this);
+    this.animId = requestAnimationFrame(this.loop);
+  }
+
+  destroy() {
+    this.active = false;
+    if (this.animId) cancelAnimationFrame(this.animId);
+    this.animId = null;
+    if (this.soundEngine) this.soundEngine.stopBGM();
+  }
+
+  initScenario(scenarioId, spawnAtX = null, spawnAtY = null) {
+    this.currentScenarioId = scenarioId;
+    this.currentScenario = this.scenarios[scenarioId];
+
+    if (spawnAtX !== null && spawnAtY !== null) {
+      this.player.wx = spawnAtX;
+      this.player.wy = spawnAtY;
+    } else {
+      this.player.wx = this.currentScenario.spawnX;
+      this.player.wy = this.currentScenario.spawnY;
+    }
+
+    this.obstacles.clear();
+    // Build border collision
+    for (let x = -1; x <= this.currentScenario.w; x++) {
+      this.obstacles.add(x + ',-1');
+      this.obstacles.add(x + ',' + this.currentScenario.h);
+    }
+    for (let y = -1; y <= this.currentScenario.h; y++) {
+      this.obstacles.add('-1,' + y);
+      this.obstacles.add(this.currentScenario.w + ',' + y);
+    }
+
+    // Scenery obstacles
+    for (const obj of this.currentScenario.scenery) {
+      if (obj.type === 'house') {
+        this.obstacles.add(Math.floor(obj.wx) + ',' + Math.floor(obj.wy));
+        this.obstacles.add((Math.floor(obj.wx) + 1) + ',' + Math.floor(obj.wy));
+        this.obstacles.add(Math.floor(obj.wx) + ',' + (Math.floor(obj.wy) + 1));
+      } else if (obj.type === 'fountain') {
+        this.obstacles.add(Math.floor(obj.wx) + ',' + Math.floor(obj.wy));
+      } else if (obj.type === 'tree_oak' || obj.type === 'tree_pine' || obj.type === 'tree_dead') {
+        this.obstacles.add(Math.floor(obj.wx) + ',' + Math.floor(obj.wy));
+      } else if (obj.type === 'crypt') {
+        this.obstacles.add(Math.floor(obj.wx) + ',' + Math.floor(obj.wy));
+        this.obstacles.add((Math.floor(obj.wx) + 1) + ',' + Math.floor(obj.wy));
+      } else if (obj.type === 'church_cathedral') {
+        for (let cx = 8; cx <= 16; cx++) {
+          for (let cy = 2; cy <= 5; cy++) {
+            this.obstacles.add(cx + ',' + cy);
+          }
+        }
+      }
+    }
+
+    // Remove obstacles at exits
+    for (const exit of this.currentScenario.exits) {
+      for (let x = Math.floor(exit.minX); x <= Math.ceil(exit.maxX); x++) {
+        for (let y = Math.floor(exit.minY); y <= Math.ceil(exit.maxY); y++) {
+          this.obstacles.delete(x + ',' + y);
+        }
+      }
+    }
+
+    // Load uncollected hearts
+    this.hearts = [];
+    for (const h of this.currentScenario.hearts) {
+      if (!this.collectedHeartIds.has(h.id)) {
+        this.hearts.push(new RPGHeart(h.id, h.wx, h.wy, this.currentScenarioId));
+      }
+    }
+
+    // Load diablillos
+    this.diablillos = [];
+    for (const d of this.currentScenario.diablillos) {
+      this.diablillos.push(new RPGDiablillo(d.type, d.wx, d.wy, this.currentScenarioId));
+    }
+
+    this.fireballs = [];
+
+    // Trigger scenario banner
+    this.bannerText = this.currentScenario.name;
+    this.bannerSubtitle = this.currentScenario.subtitle;
+    this.bannerTimer = 180; // 3 seconds
+
+    // Initial camera snap
+    const targetScreen = isoWorldToScreen(this.player.wx, this.player.wy, 0, 0, this.width / 2, this.height / 2);
+    this.camX = targetScreen.sx;
+    this.camY = targetScreen.sy;
+  }
+
+  showPrompt(msg, duration = 180) {
+    this.promptMessage = msg;
+    this.promptTimer = duration;
+  }
+
+  update() {
+    if (!this.active) return;
+
+    if (this.bannerTimer > 0) this.bannerTimer--;
+    if (this.promptTimer > 0) this.promptTimer--;
+
+    if (this.state !== 'PLAYING') return;
+
+    // Update player
+    this.player.update(this.input, this.obstacles, this.particles);
+
+    // Camera follow smoothly
+    const playerScreen = isoWorldToScreen(this.player.wx, this.player.wy, 0, 0, this.width / 2, this.height / 2);
+    this.camX += (playerScreen.sx - this.camX) * 0.1;
+    this.camY += (playerScreen.sy - this.camY) * 0.1;
+
+    // Update hearts & collection check
+    for (let i = this.hearts.length - 1; i >= 0; i--) {
+      const h = this.hearts[i];
+      h.update(this.particles);
+
+      const dist = Math.hypot(h.wx - this.player.wx, h.wy - this.player.wy);
+      if (dist < 0.8) {
+        this.collectedHeartIds.add(h.id);
+        this.hearts.splice(i, 1);
+        if (this.soundEngine) this.soundEngine.playHeartCollect();
+        this.particles.emit(this.player.wx, this.player.wy, '#ffd700', 16, 0.08, 30, 3, 'star');
+        this.showPrompt(`¡Corazón Sagrado recogido! (${this.collectedHeartIds.size}/${this.totalHeartsCount})`, 100);
+      }
+    }
+
+    // Update fireballs
+    for (let i = this.fireballs.length - 1; i >= 0; i--) {
+      const fb = this.fireballs[i];
+      fb.update(this.obstacles, this.particles);
+
+      // Hit player check
+      const dist = Math.hypot(fb.wx - this.player.wx, fb.wy - this.player.wy);
+      if (dist < 0.7) {
+        fb.isDead = true;
+        this.player.takeDamage(1, fb.wx, fb.wy, this.soundEngine, this.particles);
+        if (this.player.lives <= 0) {
+          this.state = 'GAME_OVER';
+        }
+      }
+
+      if (fb.isDead) {
+        this.fireballs.splice(i, 1);
+      }
+    }
+
+    // Update diablillos
+    for (const d of this.diablillos) {
+      d.update(this.player, this.obstacles, this.fireballs, this.particles, this.soundEngine);
+
+      // Hit player check
+      const dist = Math.hypot(d.wx - this.player.wx, d.wy - this.player.wy);
+      if (dist < 0.75) {
+        const damaged = this.player.takeDamage(1, d.wx, d.wy, this.soundEngine, this.particles);
+        if (damaged && this.player.lives <= 0) {
+          this.state = 'GAME_OVER';
+        }
+      }
+    }
+
+    this.particles.update();
+
+    // Check Scenario Exits
+    for (const exit of this.currentScenario.exits) {
+      if (
+        this.player.wx >= exit.minX &&
+        this.player.wx <= exit.maxX &&
+        this.player.wy >= exit.minY &&
+        this.player.wy <= exit.maxY
+      ) {
+        this.initScenario(exit.to, exit.spawnX, exit.spawnY);
+        if (this.soundEngine) this.soundEngine.startRPGBGM(exit.to);
+        break;
+      }
+    }
+
+    // Check Church Portal in 'iglesia'
+    if (this.currentScenario.churchPortal) {
+      const portal = this.currentScenario.churchPortal;
+      const pDist = Math.hypot(this.player.wx - portal.wx, this.player.wy - portal.wy);
+
+      if (pDist < 1.4) {
+        if (this.collectedHeartIds.size >= portal.requiredHearts) {
+          // CONSECRATION VICTORY!
+          this.state = 'VICTORY';
+          if (this.soundEngine) {
+            this.soundEngine.playChurchBell();
+            setTimeout(() => this.soundEngine.playVictoryJingle(), 600);
+          }
+          this.particles.emit(this.player.wx, this.player.wy, '#ffd700', 40, 0.15, 60, 5, 'star');
+        } else {
+          // Need more hearts
+          this.showPrompt(
+            `La Gran Iglesia requiere 12 Corazones Sagrados para purificarse. Llevas [${this.collectedHeartIds.size}/12]. ¡Encuentra los que faltan!`,
+            120
+          );
+          // Gently push player back
+          this.player.wy = portal.wy + 0.6;
+        }
+      }
+    }
+  }
+
+  draw() {
+    if (!this.active) return;
+
+    this.ctx.clearRect(0, 0, this.width, this.height);
+
+    // Background color based on scenario
+    let bgColor = '#0b0a1a';
+    if (this.currentScenarioId === 'aldea') bgColor = '#09121c';
+    else if (this.currentScenarioId === 'bosque') bgColor = '#05140f';
+    else if (this.currentScenarioId === 'cementerio') bgColor = '#0b0614';
+    else if (this.currentScenarioId === 'iglesia') bgColor = '#141208';
+
+    this.ctx.fillStyle = bgColor;
+    this.ctx.fillRect(0, 0, this.width, this.height);
+
+    // 1. Draw ground tiles
+    const gw = this.currentScenario.w;
+    const gh = this.currentScenario.h;
+
+    for (let y = 0; y < gh; y++) {
+      for (let x = 0; x < gw; x++) {
+        const s = isoWorldToScreen(x, y, this.camX, this.camY, this.width / 2, this.height / 2);
+
+        // Cull tiles off-screen
+        if (s.sx < -80 || s.sx > this.width + 80 || s.sy < -80 || s.sy > this.height + 80) {
+          continue;
+        }
+
+        let tileColor = '#242a38';
+        let strokeColor = 'rgba(0,0,0,0.15)';
+
+        if (this.currentScenario.groundType === 'stone') {
+          tileColor = (x + y) % 2 === 0 ? '#384353' : '#2e3745';
+        } else if (this.currentScenario.groundType === 'forest') {
+          tileColor = (x + y) % 2 === 0 ? '#1b4728' : '#14381f';
+        } else if (this.currentScenario.groundType === 'graveyard') {
+          tileColor = (x + y) % 2 === 0 ? '#262230' : '#1f1b29';
+        } else if (this.currentScenario.groundType === 'church') {
+          // Red carpet down the middle axis
+          if (x >= 11 && x <= 13 && y >= 6) {
+            tileColor = '#800d1e';
+          } else {
+            tileColor = (x + y) % 2 === 0 ? '#e6e8eb' : '#d5d9df';
+          }
+        }
+
+        drawIsoTile(this.ctx, s.sx, s.sy, tileColor, strokeColor);
+      }
+    }
+
+    // 2. Gather all entities for Y-Depth Sorting
+    const renderList = [];
+
+    // Scenery objects
+    for (const obj of this.currentScenario.scenery) {
+      renderList.push({
+        type: 'scenery',
+        depth: obj.wx + obj.wy,
+        obj
+      });
+    }
+
+    // Hearts
+    for (const h of this.hearts) {
+      renderList.push({
+        type: 'heart',
+        depth: h.wx + h.wy,
+        heart: h
+      });
+    }
+
+    // Diablillos
+    for (const d of this.diablillos) {
+      renderList.push({
+        type: 'diablillo',
+        depth: d.wx + d.wy,
+        diablillo: d
+      });
+    }
+
+    // Fireballs
+    for (const fb of this.fireballs) {
+      renderList.push({
+        type: 'fireball',
+        depth: fb.wx + fb.wy,
+        fireball: fb
+      });
+    }
+
+    // Player (Beato Pedro)
+    renderList.push({
+      type: 'player',
+      depth: this.player.wx + this.player.wy
+    });
+
+    // Sort by depth
+    renderList.sort((a, b) => a.depth - b.depth);
+
+    // Draw sorted entities
+    for (const item of renderList) {
+      if (item.type === 'scenery') {
+        drawSceneryObject(this.ctx, item.obj, this.camX, this.camY);
+      } else if (item.type === 'heart') {
+        item.heart.draw(this.ctx, this.camX, this.camY);
+      } else if (item.type === 'diablillo') {
+        item.diablillo.draw(this.ctx, this.camX, this.camY);
+      } else if (item.type === 'fireball') {
+        item.fireball.draw(this.ctx, this.camX, this.camY);
+      } else if (item.type === 'player') {
+        this.player.draw(this.ctx, this.camX, this.camY, this.priestImage);
+      }
+    }
+
+    // Particles
+    this.particles.draw(this.ctx, this.camX, this.camY);
+
+    // 3. Draw HUD
+    this.drawHUD();
+
+    // 4. Overlays (Banner, Prompt, GameOver, Victory)
+    if (this.bannerTimer > 0) {
+      this.drawBanner();
+    }
+    if (this.promptTimer > 0) {
+      this.drawPromptOverlay();
+    }
+
+    if (this.state === 'GAME_OVER') {
+      this.drawGameOverScreen();
+    } else if (this.state === 'VICTORY') {
+      this.drawVictoryScreen();
+    }
+  }
+
+  drawHUD() {
+    this.ctx.save();
+
+    // Left HUD Card (Hearts & Lives)
+    this.ctx.fillStyle = 'rgba(10, 9, 24, 0.82)';
+    this.ctx.strokeStyle = '#ffaa00';
+    this.ctx.lineWidth = 1.5;
+    this.ctx.beginPath();
+    this.ctx.roundRect(16, 16, 260, 72, 10);
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    // Lives (Gracia Divina)
+    this.ctx.font = 'bold 13px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#cbd5e1';
+    this.ctx.fillText('GRACIA DIVINA:', 28, 38);
+
+    for (let i = 0; i < this.player.maxLives; i++) {
+      if (i < this.player.lives) {
+        this.ctx.fillStyle = '#ff1144';
+        this.ctx.fillText('💖', 135 + i * 22, 38);
+      } else {
+        this.ctx.fillStyle = '#555566';
+        this.ctx.fillText('🖤', 135 + i * 22, 38);
+      }
+    }
+
+    // Sacred Hearts Collected
+    this.ctx.fillStyle = '#ffe600';
+    this.ctx.fillText('CORAZONES:', 28, 64);
+    this.ctx.font = '900 15px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = this.collectedHeartIds.size >= 12 ? '#00ff88' : '#ffffff';
+    this.ctx.fillText(
+      `❤️ ${this.collectedHeartIds.size} / ${this.totalHeartsCount} ${this.collectedHeartIds.size >= 12 ? '(¡IGLESIA LISTA!)' : ''}`,
+      130,
+      64
+    );
+
+    // Right HUD Card (Current Location)
+    this.ctx.fillStyle = 'rgba(10, 9, 24, 0.82)';
+    this.ctx.strokeStyle = '#00f0ff';
+    this.ctx.lineWidth = 1.5;
+    this.ctx.beginPath();
+    this.ctx.roundRect(this.width - 250, 16, 234, 44, 8);
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    this.ctx.font = 'bold 12px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#00f0ff';
+    this.ctx.fillText('📍 ' + this.currentScenario.name, this.width - 238, 42);
+
+    // Bottom Cooldown Indicators
+    const dodgePct = 1 - Math.max(0, this.player.dashCooldown / this.player.dashMaxCooldown);
+    const blessPct = 1 - Math.max(0, this.player.blessingCooldown / this.player.blessingMaxCooldown);
+
+    this.ctx.fillStyle = 'rgba(10, 9, 24, 0.85)';
+    this.ctx.beginPath();
+    this.ctx.roundRect(16, this.height - 48, 240, 36, 8);
+    this.ctx.fill();
+
+    this.ctx.font = 'bold 11px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = dodgePct >= 1 ? '#00f0ff' : '#668899';
+    this.ctx.fillText('⚡ ESQUIVA [Espacio]', 24, this.height - 26);
+
+    this.ctx.fillStyle = blessPct >= 1 ? '#ffd700' : '#887755';
+    this.ctx.fillText('✨ BENDICIÓN [J / F]', 140, this.height - 26);
+
+    this.ctx.restore();
+  }
+
+  drawBanner() {
+    const alpha = Math.min(1, this.bannerTimer / 30);
+    this.ctx.save();
+    this.ctx.globalAlpha = alpha;
+
+    this.ctx.fillStyle = 'rgba(6, 5, 18, 0.88)';
+    this.ctx.fillRect(0, 110, this.width, 70);
+
+    this.ctx.strokeStyle = '#ffe600';
+    this.ctx.lineWidth = 1.5;
+    this.ctx.beginPath();
+    this.ctx.moveTo(0, 110);
+    this.ctx.lineTo(this.width, 110);
+    this.ctx.moveTo(0, 180);
+    this.ctx.lineTo(this.width, 180);
+    this.ctx.stroke();
+
+    this.ctx.textAlign = 'center';
+    this.ctx.font = '900 24px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#ffe600';
+    this.ctx.fillText(this.bannerText, this.width / 2, 142);
+
+    this.ctx.font = '13px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#a4b3d6';
+    this.ctx.fillText(this.bannerSubtitle, this.width / 2, 164);
+
+    this.ctx.restore();
+  }
+
+  drawPromptOverlay() {
+    this.ctx.save();
+    this.ctx.fillStyle = 'rgba(8, 7, 22, 0.92)';
+    this.ctx.strokeStyle = '#ffd700';
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.roundRect(this.width / 2 - 280, 200, 560, 56, 10);
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    this.ctx.textAlign = 'center';
+    this.ctx.font = 'bold 14px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.shadowColor = '#ffd700';
+    this.ctx.shadowBlur = 6;
+    this.ctx.fillText(this.promptMessage, this.width / 2, 234);
+    this.ctx.restore();
+  }
+
+  drawGameOverScreen() {
+    this.ctx.save();
+    this.ctx.fillStyle = 'rgba(6, 5, 16, 0.92)';
+    this.ctx.fillRect(0, 0, this.width, this.height);
+
+    this.ctx.textAlign = 'center';
+    this.ctx.font = '900 48px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#ff0055';
+    this.ctx.shadowColor = '#ff0055';
+    this.ctx.shadowBlur = 20;
+    this.ctx.fillText('EL MAL HA PREVALECIDO', this.width / 2, 200);
+
+    this.ctx.font = '18px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.shadowBlur = 0;
+    this.ctx.fillText(
+      `El Beato Pedro ha sido derrotado. Corazones recogidos: ${this.collectedHeartIds.size} / ${this.totalHeartsCount}`,
+      this.width / 2,
+      255
+    );
+
+    this.ctx.font = 'bold 20px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#ffe600';
+    this.ctx.fillText('PULSA [ R ] O TOCA LA PANTALLA PARA REINTENTAR', this.width / 2, 330);
+
+    this.ctx.restore();
+  }
+
+  drawVictoryScreen() {
+    this.ctx.save();
+    this.ctx.fillStyle = 'rgba(7, 6, 20, 0.94)';
+    this.ctx.fillRect(0, 0, this.width, this.height);
+
+    this.ctx.textAlign = 'center';
+    this.ctx.font = '900 46px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#ffd700';
+    this.ctx.shadowColor = '#ffd700';
+    this.ctx.shadowBlur = 25;
+    this.ctx.fillText('¡LA GRAN IGLESIA HA SIDO CONSAGRADA!', this.width / 2, 180);
+
+    this.ctx.font = '20px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#00f0ff';
+    this.ctx.shadowColor = '#00f0ff';
+    this.ctx.shadowBlur = 10;
+    this.ctx.fillText(
+      'El Beato Pedro ha purificado todos los escenarios y expulsado a los diablillos.',
+      this.width / 2,
+      235
+    );
+
+    this.ctx.font = 'bold 24px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.fillText(`CORAZONES SAGRADOS REUNIDOS: ${this.collectedHeartIds.size} / ${this.totalHeartsCount}`, this.width / 2, 290);
+
+    this.ctx.font = 'bold 18px "Segoe UI", sans-serif';
+    this.ctx.fillStyle = '#ffe600';
+    this.ctx.fillText('PULSA [ R ] PARA VOLVER A EXPLORAR LA AVENTURA', this.width / 2, 360);
+
+    this.ctx.restore();
+  }
+
+  restart() {
+    this.collectedHeartIds.clear();
+    this.player.lives = this.player.maxLives;
+    this.state = 'PLAYING';
+    this.initScenario('aldea');
+  }
+
+  loop() {
+    if (!this.active) return;
+    this.update();
+    this.draw();
+    this.animId = requestAnimationFrame(this.loop);
+  }
+}
+
+
+// ==========================================
+// 8. COORDINADOR GENERAL (APP MANAGER)
+// ==========================================
+
+class AppManager {
+  constructor() {
+    this.soundEngine = new SoundEngine();
+    this.priestImage = new Image();
+    this.priestImage.src = PRIEST_SPRITE_SRC;
+
+    this.activeMode = null; // 'PLATFORMER' or 'RPG'
+    this.platformerGame = null;
+    this.rpgGame = null;
+
+    this.modalElem = document.getElementById('mode-modal');
+    this.pcInstructions = document.getElementById('pc-instructions');
+
+    // D-Pad and Action Containers
+    this.dpadPlatformer = document.getElementById('dpad-platformer');
+    this.dpadRpg = document.getElementById('dpad-rpg');
+    this.actionsPlatformer = document.getElementById('actions-platformer');
+    this.actionsRpg = document.getElementById('actions-rpg');
+
+    this.initEventListeners();
+
+    // Check if user has previously chosen a mode or show selector
+    const savedMode = localStorage.getItem('beato_pedro_mode');
+    if (savedMode === 'PLATFORMER' || savedMode === 'RPG') {
+      this.switchMode(savedMode);
+    } else {
+      this.showModeModal();
+    }
+  }
+
+  showModeModal() {
+    // Pause any active game
+    if (this.platformerGame) this.platformerGame.destroy();
+    if (this.rpgGame) this.rpgGame.destroy();
+
+    this.modalElem.style.display = 'flex';
+  }
+
+  hideModeModal() {
+    this.modalElem.style.display = 'none';
+  }
+
+  switchMode(mode) {
+    this.soundEngine.init();
+    this.hideModeModal();
+
+    if (this.platformerGame) {
+      this.platformerGame.destroy();
+      this.platformerGame = null;
+    }
+    if (this.rpgGame) {
+      this.rpgGame.destroy();
+      this.rpgGame = null;
+    }
+
+    this.activeMode = mode;
+    localStorage.setItem('beato_pedro_mode', mode);
+
+    if (mode === 'PLATFORMER') {
+      this.dpadPlatformer.style.display = 'flex';
+      this.dpadRpg.style.display = 'none';
+      this.actionsPlatformer.style.display = 'flex';
+      this.actionsRpg.style.display = 'none';
+
+      if (this.pcInstructions) {
+        this.pcInstructions.innerHTML =
+          'Moverse: <span>A/D o Flechas</span> | Saltar: <span>Espacio / W</span> | Sombrero (Fase 2+): <span>J o F</span> | Fases: <span>1 a 5</span> | Audio: <span>M</span>';
+      }
+
+      this.platformerGame = new PlatformerGame();
+
+    } else if (mode === 'RPG') {
+      this.dpadPlatformer.style.display = 'none';
+      this.dpadRpg.style.display = 'grid';
+      this.actionsPlatformer.style.display = 'none';
+      this.actionsRpg.style.display = 'flex';
+
+      if (this.pcInstructions) {
+        this.pcInstructions.innerHTML =
+          'Moverse 4 lados: <span>W, A, S, D o Flechas</span> | Esquivar: <span>Espacio</span> | Bendición: <span>J o F</span> | Reiniciar: <span>R</span> | Audio: <span>M</span>';
+      }
+
+      this.rpgGame = new IsometricRPGGame(this.soundEngine, this.priestImage);
+    }
+  }
+
+  initEventListeners() {
+    // Mode selection buttons
+    document.getElementById('btn-choose-platformer').addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.switchMode('PLATFORMER');
+    });
+
+    document.getElementById('btn-choose-rpg').addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.switchMode('RPG');
+    });
+
+    // Mode Switcher in bar & touch top bar
+    document.getElementById('btn-switch-mode-bar').addEventListener('click', () => {
+      this.showModeModal();
+    });
+
+    document.getElementById('touch-mode').addEventListener('click', (e) => {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      this.showModeModal();
+    });
+
+    // Shared Audio Mute
+    document.getElementById('touch-mute').addEventListener('click', (e) => {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      this.soundEngine.init();
+      this.soundEngine.toggleMute();
+    });
+
+    // Shared Restart
+    document.getElementById('touch-restart').addEventListener('click', (e) => {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      if (this.activeMode === 'PLATFORMER' && this.platformerGame) {
+        this.platformerGame.restartGame();
+      } else if (this.activeMode === 'RPG' && this.rpgGame) {
+        this.rpgGame.restart();
+      }
+    });
+
+    // Keyboard handling
+    window.addEventListener('keydown', (e) => {
+      this.soundEngine.init();
+
+      if (e.code === 'KeyM') {
+        this.soundEngine.toggleMute();
+        return;
+      }
+
+      if (e.code === 'Escape') {
+        this.showModeModal();
+        return;
+      }
+
+      if (this.activeMode === 'PLATFORMER' && this.platformerGame) {
+        // Platformer inputs handled directly inside PlatformerGame event listeners
+      } else if (this.activeMode === 'RPG' && this.rpgGame) {
+        if (e.code === 'KeyW' || e.code === 'ArrowUp') {
+          this.rpgGame.input.up = true;
+          e.preventDefault();
+        }
+        if (e.code === 'KeyS' || e.code === 'ArrowDown') {
+          this.rpgGame.input.down = true;
+          e.preventDefault();
+        }
+        if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
+          this.rpgGame.input.left = true;
+          e.preventDefault();
+        }
+        if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+          this.rpgGame.input.right = true;
+          e.preventDefault();
+        }
+
+        // Dodge / Dash with Space
+        if (e.code === 'Space') {
+          let dx = 0;
+          let dy = 0;
+          if (this.rpgGame.input.right) dx += 1;
+          if (this.rpgGame.input.left) dx -= 1;
+          if (this.rpgGame.input.down) dy += 1;
+          if (this.rpgGame.input.up) dy -= 1;
+          this.rpgGame.player.performDodge(dx, dy, this.soundEngine, this.rpgGame.particles);
+          e.preventDefault();
+        }
+
+        // Blessing with J or F
+        if (e.code === 'KeyJ' || e.code === 'KeyF') {
+          this.rpgGame.player.performBlessing(
+            this.rpgGame.diablillos,
+            this.rpgGame.fireballs,
+            this.soundEngine,
+            this.rpgGame.particles
+          );
+        }
+
+        if (e.code === 'KeyR') {
+          this.rpgGame.restart();
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (this.activeMode === 'RPG' && this.rpgGame) {
+        if (e.code === 'KeyW' || e.code === 'ArrowUp') this.rpgGame.input.up = false;
+        if (e.code === 'KeyS' || e.code === 'ArrowDown') this.rpgGame.input.down = false;
+        if (e.code === 'KeyA' || e.code === 'ArrowLeft') this.rpgGame.input.left = false;
+        if (e.code === 'KeyD' || e.code === 'ArrowRight') this.rpgGame.input.right = false;
+      }
+    });
+
+    // Canvas tap / click for Game Over or Victory screens
+    const canvas = document.getElementById('gameCanvas');
+    canvas.addEventListener('pointerdown', () => {
+      this.soundEngine.init();
+      if (this.activeMode === 'RPG' && this.rpgGame) {
+        if (this.rpgGame.state === 'GAME_OVER' || this.rpgGame.state === 'VICTORY') {
+          this.rpgGame.restart();
+        }
+      }
+    });
+
+    // Touch setup
+    this.setupTouchControls();
+  }
+
+  setupTouchControls() {
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 980);
+    if (isTouch) {
+      document.body.classList.add('touch-enabled');
+    }
+
+    const bindTouch = (elem, onStart, onEnd) => {
+      if (!elem) return;
+      const handleStart = (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        this.soundEngine.init();
+        elem.classList.add('active');
+        onStart();
+      };
+      const handleEnd = (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        elem.classList.remove('active');
+        onEnd();
+      };
+      elem.addEventListener('touchstart', handleStart, { passive: false });
+      elem.addEventListener('touchend', handleEnd, { passive: false });
+      elem.addEventListener('touchcancel', handleEnd, { passive: false });
+      elem.addEventListener('mousedown', handleStart);
+      elem.addEventListener('mouseup', handleEnd);
+      elem.addEventListener('mouseleave', handleEnd);
+    };
+
+    // RPG 4-Way D-pad touch buttons
+    bindTouch(document.getElementById('touch-up'),
+      () => { if (this.rpgGame) this.rpgGame.input.up = true; },
+      () => { if (this.rpgGame) this.rpgGame.input.up = false; }
+    );
+    bindTouch(document.getElementById('touch-down'),
+      () => { if (this.rpgGame) this.rpgGame.input.down = true; },
+      () => { if (this.rpgGame) this.rpgGame.input.down = false; }
+    );
+    bindTouch(document.getElementById('touch-rpg-left'),
+      () => { if (this.rpgGame) this.rpgGame.input.left = true; },
+      () => { if (this.rpgGame) this.rpgGame.input.left = false; }
+    );
+    bindTouch(document.getElementById('touch-rpg-right'),
+      () => { if (this.rpgGame) this.rpgGame.input.right = true; },
+      () => { if (this.rpgGame) this.rpgGame.input.right = false; }
+    );
+
+    // RPG Actions
+    bindTouch(document.getElementById('touch-dodge'),
+      () => {
+        if (this.rpgGame) {
+          let dx = 0;
+          let dy = 0;
+          if (this.rpgGame.input.right) dx += 1;
+          if (this.rpgGame.input.left) dx -= 1;
+          if (this.rpgGame.input.down) dy += 1;
+          if (this.rpgGame.input.up) dy -= 1;
+          this.rpgGame.player.performDodge(dx, dy, this.soundEngine, this.rpgGame.particles);
+        }
+      },
+      () => {}
+    );
+    bindTouch(document.getElementById('touch-bless'),
+      () => {
+        if (this.rpgGame) {
+          this.rpgGame.player.performBlessing(
+            this.rpgGame.diablillos,
+            this.rpgGame.fireballs,
+            this.soundEngine,
+            this.rpgGame.particles
+          );
+        }
+      },
+      () => {}
+    );
+  }
+}
+
+
 window.addEventListener('load', () => {
-  new Game();
+  new AppManager();
 });
+
 </script>
 </body>
 </html>
